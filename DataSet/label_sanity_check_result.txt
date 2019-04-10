@@ -56,7 +56,8 @@ Passed:
 .\TrainSet\7\2.wmv.txt
 .\TrainSet\7\3.wmv.txt
 .\TrainSet\7\4.wmv.txt
-.\TrainSet\8\+45\1.wmv.txt
+.\TrainSet\8\+45\2.wmv.txt
+.\TrainSet\8\-45\1.wmv.txt
 .\TrainSet\8\-45\2.wmv.txt
 .\TrainSet\8\0\1.wmv.txt
 .\TrainSet\8\0\2.wmv.txt
@@ -83,13 +84,6 @@ Is empty:
 .\TestSet\V7.wmv.txt
 .\TestSet\V8.wmv.txt
 .\TestSet\V9.wmv.txt
-.\TrainSet\1\4.wmv.txt
-.\TrainSet\11\0\1.wmv.txt
-.\TrainSet\11\0\2.wmv.txt
-.\TrainSet\5\-45\3.wmv.txt
-.\TrainSet\5\0\1.wmv.txt
-.\TrainSet\8\+45\2.wmv.txt
-.\TrainSet\8\-45\1.wmv.txt
 ==========
 Is corrupted:
 
