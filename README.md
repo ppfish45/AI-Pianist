@@ -4,7 +4,7 @@ A computer vision project that aims to generate vivid and accurate piano sound b
 
 ## Dataset
 
-### Dataset for Key Pressing Detection
+### Dataset for Pressed Key Detection
 
 The current dataset is an external dataset consisting of muted video and midi audio. We firstly converted the `.mid` audio to `.wav` analog audio, and the create a `.txt` of audio offset against the video start time.
 
