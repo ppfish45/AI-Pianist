@@ -22,3 +22,13 @@ This dataset consists of multiple images containing __complete__ keyboards in it
 To explain the format of this dataset, we take `X_train` and `y_train` as an example. There are several subdirectories under `X_train` named `0`, `1`, `2` and so on. In each subdirectory, multiple `jpg` images are stored.
 
 Respectively, in `y_train`, there are the same number of ground truth files named `0.npy`, `1.npy`, `2.npy` and so on. Each `npy` file stores an array in the shape of `(N, 4, 2)`, which records the corner coordinates of each image under the corresponding subdirectory in `X_train`.
+
+### Dataset for Note Correspondence
+
+This dataset describes a corresponding relationship between all the frames and the note generated at those frames. 
+
+Similar as the above dataset, we make two directories, `X_train` and `y_train`, to store the note labelling result. There are several subdirectories under `X_train` named  `1`, `2` and so on. In each subdirectory, multiple `jpg` images are stored. 
+
+Correspondingly, in `y_train`, there are the same number of ground truth files named `0.npy`, `1.npy`, `2.npy` and etc to keep the note labels. Each `npy` file stores an array in the shape of `(N, 128)`, where `N` represents the number of frames in video `1`, and the second dimension stores the note information of certain frame. Since we have overall `128` note level, we take `128` to be the size of second dimension.
+
+The dataset has been uploaded to Google Drive, the link will be posted later.
