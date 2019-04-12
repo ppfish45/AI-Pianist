@@ -22,7 +22,7 @@
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
 %\ifcvprfinal\pagestyle{empty}\fi
-\setcounter{page}{4321}
+\setcounter{page}{1}
 \begin{document}
 
 %%%%%%%%% TITLE
@@ -48,6 +48,10 @@ HUANG Zeyu\\
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
+It is noticed that human playing the piano effectively generates a series of well-patterned actions,
+i.e. the position of hands and the keys and the depth of keys being pressed down.
+The notes that the piano generates strongly obey to this visual pattern.
+Hence, it becomes reasonable to recognize the visual patterns from piano-playing videos and reproduce the instrumental sounds using machine learning.
 
 \subsection{Improved Keyboard Detection}
 
@@ -62,7 +66,7 @@ Among all of the previous work that we have studied, no deep learning based meth
   \includegraphics[width=\linewidth]{fig/2.jpg}
   \caption{Gaussian Blurred Image} \label{fig:b}
   \end{subfigure}
-  
+
   \medskip
   \begin{subfigure}{0.24\textwidth}
   \includegraphics[width=\linewidth]{fig/4.jpg}
@@ -72,14 +76,14 @@ Among all of the previous work that we have studied, no deep learning based meth
   \includegraphics[width=\linewidth]{fig/5.jpg}
   \caption{Hough Line Transformation} \label{fig:d}
   \end{subfigure}
-  
+
   \medskip
   \hspace{2.1cm}
   \begin{subfigure}{0.24\textwidth}
   \includegraphics[width=\linewidth]{fig/6.jpg}
   \caption{Prune Repeated Lines} \label{fig:e}
   \end{subfigure}\hspace*{\fill}
-  
+
   \caption{Pipeline of Finding Boundaries of Keyboard} \label{fig:1}
 \end{figure}
 
@@ -95,7 +99,7 @@ Due to the weak robustness of the traditional CV method, we decided to use a con
 \begin{figure}[h!]
   \hspace{2.1cm}
   \begin{subfigure}{0.24\textwidth}
-    \includegraphics[width=\linewidth]{fig/7.png}      
+    \includegraphics[width=\linewidth]{fig/7.png}
   \end{subfigure}
   \caption{Labelling Tool}
 \end{figure}
@@ -125,6 +129,69 @@ A music piece without emotional variation is rigid and undesired. To detect the 
 \subsection{Audio Generation}
 
 Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
+
+----------------------------------------------------
+
+
+In this project, we aims to achieve hand gesture detection in piano playing and generate the correponding audio afterwards.
+It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a "fake" one.
+
+\section{Problem Statement}
+In this section we will mainly discuss our problem formulation, dataset sources, the evaluation pattern and expected results.
+
+    \subsection{Objective Formulation}
+
+    \subsection{Dataset}
+    The current dataset we have is a external dataset from previous people’s research \cite{Akbari}.
+    It consists of several muted videos and their corresponding midi files.
+    The major problem is that the audio and the video do not start and end at the same time, and the offset is not provided.
+    Hence, we have to manually label the time offset from the beginning of the video to the beginning of the audio.
+    This task is accomplished.
+
+    While we are labeling the data, we have found several traits of the dataset:
+    \begin{itemize}
+        \item There are several pianists, each with their own playing style.
+        \item All keys on the keyboard are covered.
+        \item They have included some fake gestures.
+        \item The playing times vary.
+    \end{itemize}
+
+    But there are several shortcomings as well:
+    \begin{itemize}
+        \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. We doubt the ability of eliminate all false positives including those more subtle ones occurring while playing.
+        \item A large portion of the dataset is pressing the keys from left to right one by one using only one finger. This playing pattern sheds less shadow and cause less interference than playing in the real world. The low speed also reduces the difficulty to learn this specific pattern. In short, we worry about the occurrence of an overfit on simple playing patterns.
+        \item Several audio files are corrupted. Either they are empty, or they have midi messages with messed up time informations. What’s more, the leftmost key and the rightmost two keys are broken and are not recorded. One particular key somewhere in the middle is presumably broken as well.
+        \item Only one or two from the 14 players plays meaningful pieces instead of random fiddling. We think more meaningful pieces should be included, since playing some common chords may generate common and critical graphic information that is uncommon among piano newbie’s keyboard-scrubbing.
+    \end{itemize}
+
+    Therefore, we believe that it is helpful to add our own dataset, where, beside solving these problems, we want to provide the following enhancements
+    \begin{itemize}
+        \item Provide the keyboard localization data. We want to localize the keyboard using neural network instead of traditional CV method.
+        \item Provide the “strength” information while pressing the key. Then we can generate more emotional music.
+    \end{itemize}
+
+    We plan to augment the dataset after the milestone, in parallel with the training process.
+
+    \subsection{Evaluation and Expected Result}
+
+\section{Deep Learning Approach}
+In this section we will propose a deep learning approach towards the above problems.
+
+In all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame.
+Instead, all of them used traditional CV method such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard.
+We have partially reproduced this algorithm and have found following drawbacks:
+
+\section{Preliminary Results}
+Currently we've pre-processed the dataset and generated some preliminary labelling result by our neural network.
+
+\section{Future Work}
+In the future, there are plenty of work to be done.
+
+Firstly, enlarging and augmenting our dataset.
+
+Secondly, refine our network structure.
+
+Thirdly, conduct evaluation on the result.
 
 {\small
 \bibliographystyle{ieee}
