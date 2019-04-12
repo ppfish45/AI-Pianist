@@ -60,7 +60,20 @@ It is also expected that we can thereby generate piano sound by our model withou
 \section{Problem Statement}
 In this section we will mainly discuss our problem formulation, dataset sources, the evaluation pattern and expected results.
 
-\subsection{Keyboard Detection Approach}  
+\subsection{Evaluation and Expected Result}
+
+Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
+
+To evaluate the performance of our networks, we will compute each note's duration difference between the original file and our output. Summing the differences up, we will get a total time length of difference as a quantified evaluator of our network. Since each note has its pitch and duration quantified in the MIDI file, cumputing the difference is easily achievable.
+
+In addition, we can set up a survey platform and invite poeple to judge whether the music we generate from playing musical work is natural.
+
+If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
+
+\section{Technical Approach}
+
+\subsection{Improving Keyboard Detection using Deep Learning}
+
 Among all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame. Instead, all of them used traditional CV method such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard (Fig.\ref{fig:1}). We have first partially reproduced this algorithm.
 
 \begin{figure}[h!]
@@ -100,21 +113,7 @@ After pruning repeated lines, some hard-coded method will be used to finally det
   \item To accurately determine the corners' coordinates, it is required there is no hands posing above the keyboard. It is hard to guarantee since most of piano videos do not contain such a "empty" frame. In some cases, the camera angle will even change slightly, where the traditional method will fail.
 \end{itemize}
 
-\subsection{Evaluation and Expected Result}
-
-Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
-
-To evaluate the performance of our networks, we will compute each note's duration difference between the original file and our output. Summing the differences up, we will get a total time length of difference as a quantified evaluator of our network. Since each note has its pitch and duration quantified in the MIDI file, cumputing the difference is easily achievable.
-
-In addition, we can set up a survey platform and invite poeple to judge whether the music we generate from playing musical work is natural.
-
-If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
-
-\section{Technical Approach}
-
-\subsection{Improving Keyboard Detection using Deep Learning}
-
-Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet.
+Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet (Fig. \ref{fig:2}).
 
 \begin{figure}[h!]
   \hspace{2.1cm}
@@ -122,6 +121,7 @@ Due to the weak robustness of the traditional CV method, we decided to use a con
     \includegraphics[width=\linewidth]{fig/7.png}
   \end{subfigure}
   \caption{Labelling Tool}
+  \label{fig:2}
 \end{figure}
 
 To augment this dataset, we will also consider artificially putting keyboard images onto some random backgrounds and perform some basic transformation such as flipping and stretching on images present.
