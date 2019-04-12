@@ -54,8 +54,12 @@ i.e. the position of hands and the keys and the depth of keys being pressed down
 The notes that the piano generates strongly obey to this visual pattern.
 Hence, it becomes reasonable to recognize the visual patterns from piano-playing videos and reproduce the instrumental sounds using machine learning.
 
-In this project, we aims to achieve hand gesture detection in piano playing and generate the correponding audio afterwards.
-It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a ``fake" one.
+In this project, we aim to adapt some deep learning techniques related to object detection into this task and build a more robust model to detect what keys are being pressed in the video as well as the velocity of every single key press, which will enable us to retrieve the notes which are sounded. 
+After the note sequence is obtained, we will use some software instrument to reproduce the piano sound and remix it with the original video. 
+Apart from the basic task just mentioned, we also hope to make this model support real-time audio generating, which may require us using some faster network architectures like Faster R-CNN and cope with the synchronization between the detected notes and the audio to be generated.
+
+% In this project, we aim to achieve hand gesture detection in piano playing and generate the correponding audio afterwards.
+% It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a ``fake" one.
 
 \section{Problem Statement}
 In this section we will mainly discuss our problem statement, introducing our dataset sources, the evaluation patterns and expected results.
@@ -63,20 +67,20 @@ In this section we will mainly discuss our problem statement, introducing our da
 \subsection{Dataset Source}
 \label{source}
 
-In order to generate instrumental audio from piano-playing videos by recognizing hand gestures, we need a piano-video dataset where each frame must contain the whole keyboard, since it's almost impossible to determine the pitch of a note without a complete keyboard view.
+To generate instrumental audio from piano-playing videos by recognizing hand gestures, we need a piano-video dataset where each frame must contain the whole keyboard, since it's almost impossible to determine the pitch of a note without a complete keyboard view.
 Also, the required video dataset should be clear enough to demonstrate hand actions. And it's better for the dataset to expose the pitch information.
 
-According to the above requirements, we find a suitable dataset, which is used in a related research \cite{Akbari}. It consists of several muted videos and their corresponding MIDI files, which exposes the pitch information.
-However, there are still labelling and localization work to be done on the dataset in order to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
+According to the above requirements, we find a suitable dataset, which is used in some related research \cite{Akbari}. It consists of several muted videos and their corresponding MIDI files, which exposes the pitch information.
+However, there are still labelling and localization work to be done on the dataset to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
 
 \subsection{Evaluation and Expected Result}
 \label{evaluation}
 
 Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
 
-To evaluate the performance of our networks, we will compute each note's duration difference between the original file and our output. Summing the differences up, we will get a total time length of difference as a quantified evaluator of our network. Since each note has its pitch and duration quantified in the MIDI file, cumputing the difference is easily achievable.
+To evaluate the performance of our networks, we will compute each note's duration difference between the original file and our output. Summing the differences up, we will get a total time length of difference as a quantified evaluator of our network. Since each note has its pitch and duration quantified in the MIDI file, computing the difference is easily achievable.
 
-In addition, we can set up a survey platform and invite poeple to judge whether the music we generate from playing musical work is natural.
+Besides, we can set up a survey platform and invite people to judge whether the music we generate from playing musical work is natural.
 
 If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
 
@@ -87,7 +91,7 @@ In this section, we will discuss the approaches we propose to achieve the object
 
 \subsection{Improving Keyboard Detection}
 
-In the very beginning, we need to extract the boundary of the piano keyboard in the video. Instead of using traditional CV method to extract coordinates of four corners of the keyboard which is utilized in previous work \cite{Akbari}, we will use CNN to perform this task. This is because deep learning method has a relatively better robustness and efficiency. Details will be discussed later in Section \ref{keyboardDetection}.
+In the very beginning, we need to extract the boundary of the piano keyboard in the video. Instead of using the traditional CV method to extract coordinates of four corners of the keyboard which is utilized in previous work \cite{Akbari}, we will use CNN to perform this task. This is because the deep learning method has relatively better robustness and efficiency. Details will be discussed later in Section \ref{keyboardDetection}.
 
 \subsection{Keyboard Separation Algorithm}
 
@@ -95,7 +99,7 @@ After the keyboard can be correctly recognized, we will use perspective transfor
 
 \subsection{Training Key Recognition Network}
 
-When individual keys can be localized and normalized, it is feasible for us to perform deep learning on each key to determine their conditions (pressed or not pressed). The quality of the eventual generated music heavily depends on the performance of this network.
+When individual keys can be localized and normalized, it is feasible for us to perform deep learning on each key to determine their conditions (pressed or not pressed). The quality of the eventually generated music heavily depends on the performance of this network.
 
 \subsection{Training Velocity Detection Network}
 
@@ -106,6 +110,7 @@ A music piece without emotional variation is rigid and undesired. To detect the 
 Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
 
 \section{Preliminary Results}
+\label{result}
 
 \subsection{Deep Learning Based Keyboard Detection}
 \label{keyboardDetection}
@@ -142,14 +147,14 @@ Among all of the previous work that we have studied, no deep learning based meth
   \caption{Pipeline of Finding Boundaries of Keyboard} \label{fig:1}
 \end{figure}
 
-After pruning repeated lines, some hard-coded method will be used to finally determine the positions of four corners. However, after applying this method to multiple images with different light condition and hand positioning, we found following drawbacks:
+After pruning repeated lines, some hard-coded method will be used to finally determine the positions of four corners. However, after applying this method to multiple images with different light conditions and hand positioning, we found the following drawbacks:
 
 \begin{itemize}
   \item To achieve a satisfying performance, several hyperparameters in Hough Line Transformation and Canny Edge Detection needs to be adjusted dramatically in different images.
   \item To accurately determine the corners' coordinates, it is required there is no hands posing above the keyboard. It is hard to guarantee since most of piano videos do not contain such a "empty" frame. In some cases, the camera angle will even change slightly, where the traditional method will fail.
 \end{itemize}
 
-Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images (Fig. \ref{fig:2}) captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet.
+Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images (Fig. \ref{fig:2}) captured from different piano playing videos, which come from the dataset of a previous research project, as well as some videos on the Internet.
 
 \begin{figure}[h!]
   \hspace{2.1cm}
@@ -166,9 +171,10 @@ In parallel with augmentation of the dataset, we have also started to evaluate t
 
 \subsection{Dataset Pre-process}
 
+
 Currently we've conducted some pre-processing on the dataset and got the following preliminary results.
 
-As mentioned in Section \ref{source}, the dataset we found only consists of several videos and correponding MIDI files. 
+As mentioned in Section \ref{source}, the dataset we found only consists of several videos and corresponding MIDI files. 
 So our very first task is to expose the pitch information from the MIDI files and store the mapping from each video frame to the sounded notes of that frame.
 
 We fulfilled this task by first extracting all frames from the videos and the notes information from the MIDIs. We then construct and store the mapping as a \textit{numpy} array of size $(N, 128)$, where $N$ represents the number of frames and $128$ stands for the number of pitch possibilities in MIDI file format.
@@ -177,17 +183,16 @@ Each entry of the array has the value of either $1$ or $0$, where $1$ represents
 As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
 
 \section{Future Work}
-In the future, there are plenty of work to be done.
+In the future, there is plenty of work to be done.
 
 \subsection{More Refining on the Dataset}
-\label{result}
 
   
 While we are labelling the data, we have found several shortcomings of the dataset:
 \begin{itemize}
   \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. This pattern may not be able to represent all kinds of visual interference.
-  \item A large portion of the dataset is pressing the keys slowly from left to right one by one using only one finger. This playing pattern sheds less shadow and cause less interference than playing the piano in the real world.
-  \item Several audio files are corrupted. Either they are empty or the midi messages have messed up timing informations. Moreover, the leftmost key and the rightmost two keys are broken and not recorded into the MIDI file.
+  \item A large portion of the dataset is pressing the keys slowly from left to right one by one using only one finger. This playing pattern sheds less shadow and causes less interference than playing the piano in the real world.
+  \item Several audio files are corrupted. Either they are empty or the midi messages have messed up timing information. Moreover, the leftmost key and the rightmost two keys are broken and not recorded into the MIDI file.
   \item Only one or two from the 14 players play meaningful pieces instead of random fiddling. We think more meaningful pieces should be included, since playing some common chords may generate some exclusive yet common and critical graphic information.
 \end{itemize}
 
@@ -202,11 +207,11 @@ We plan to record our own videos after the milestone, in parallel with the train
 
 \subsection{Tuning the Networks}
 
-To achieve our goals of keyboard localization, key detection and velocity detection, we will build and tune several seperate networks. Details are covered in Section \ref{approach}.
+To achieve our goals of keyboard localization, key detection and velocity detection, we will build and tune several separate networks. Details are covered in Section \ref{approach}.
 
 \subsection{Conduct Evaluation on the Result}
 
-As is described above in Section \ref{evaluation}, we will eventually build a evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this differnece during our experiments.
+As is described above in Section \ref{evaluation}, we will eventually build an evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this difference during our experiments.
 
 {\small
 \bibliographystyle{ieee}
