@@ -67,7 +67,7 @@ In order to generate instrumental audio from piano-playing videos by recognizing
 Also, the required video dataset should be clear enough to demonstrate hand actions. And it's better for the dataset to expose the pitch information.
 
 According to the above requirements, we find a suitable dataset, which is used in a related research \cite{Akbari}. It consists of several muted videos and their corresponding MIDI files, which exposes the pitch information.
-However, there are still labelling and localization work need to be done on the dataset in order to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
+However, there are still labelling and localization work to be done on the dataset in order to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
 
 \subsection{Evaluation and Expected Result}
 
@@ -135,7 +135,7 @@ Due to the weak robustness of the traditional CV method, we decided to use a con
   \label{fig:2}
 \end{figure}
 
-To augment this dataset, we will also consider artificially putting keyboard images onto some random backgrounds and perform some basic transformation such as flipping and stretching on images present.
+To augment this dataset, we also consider artificially putting keyboard images onto some random backgrounds and perform some basic transformation such as flipping and stretching on images present.
 
 In parallel with augmentation of the dataset, we have also started to evaluate the performance of several different CNNs on this task.
 
@@ -194,11 +194,13 @@ Given the shortcomings mentioned above, we believe that it is helpful to add our
 
 We plan to record our own videos after the milestone, in parallel with the training process.
 
-\subsection{Refine the Network Structure}
+\subsection{Tuning the Networks}
+
+To achieve our goals of keyboard localization, key detection and velocity detection, we will build and tune several seperate networks. Details are covered in section 3.
 
 \subsection{Conduct Evaluation on the Result}
 
-As is described above, we will eventually build a evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this differnece during our experiments.
+As is described above in 2.2, we will eventually build a evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this differnece during our experiments.
 
 {\small
 \bibliographystyle{ieee}
