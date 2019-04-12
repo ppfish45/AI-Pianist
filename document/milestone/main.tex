@@ -60,6 +60,15 @@ It is also expected that we can thereby generate piano sound by our model withou
 \section{Problem Statement}
 In this section we will mainly discuss our problem statement, introducing our dataset sources, the evaluation patterns and expected results.
 
+\subsection{Dataset Source}
+\label{source}
+
+In order to generate instrumental audio from piano-playing videos by recognizing hand gestures, we need a piano-video dataset where each frame must contain the whole keyboard, since it's almost impossible to determine the pitch of a note without a complete keyboard view.
+Also, the required video dataset should be clear enough to demonstrate hand actions. And it's better for the dataset to expose the pitch information.
+
+According to the above requirements, we find a suitable dataset, which is used in a related research \cite{Akbari}. It consists of several muted videos and their corresponding MIDI files, which exposes the pitch information.
+However, there are still labelling and localization work need to be done on the dataset in order to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
+
 \subsection{Evaluation and Expected Result}
 
 Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
@@ -71,6 +80,8 @@ In addition, we can set up a survey platform and invite poeple to judge whether 
 If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
 
 \section{Technical Approach}
+
+In this section, we will discuss the approaches we propose to achieve the objectives.
 
 \subsection{Improving Keyboard Detection using Deep Learning}
 
@@ -149,13 +160,12 @@ A music piece without emotional variation is rigid and undesired. To detect the 
 Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
 
 \section{Preliminary Results}
+\label{result}
 Currently we've conducted some pre-processing on the dataset and got the following preliminary results.
 
-The current dataset we have is a external dataset from previous people’s research \cite{Akbari}.
-It consists of several muted videos and their corresponding midi files.
-
-The audio and the video do not start and end at the same time, and the offset is not provided.
-Hence, we have manually labeled the time offset from the beginning of the video to the beginning of the audio.
+As mentioned in Section \ref{source}, the dataset we found consists of several muted videos and their corresponding MIDI files. 
+However, the audio and the video do not start and end at the same time, and the offset is not provided.
+Hence, we have manually labeled the time offset from the beginning of the video to the beginning of the audio in order to match video frames with their corresponding pitch information.
 
 While we are labelling the data, we have found several shortcomings of the dataset:
 \begin{itemize}
