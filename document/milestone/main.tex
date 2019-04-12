@@ -85,7 +85,30 @@ If our network is well-trained, we expect the total difference to be small, and 
 
 In this section, we will discuss the approaches we propose to achieve the objectives.
 
-\subsection{Improving Keyboard Detection using Deep Learning}
+\subsection{Improving Keyboard Detection}
+
+In the very beginning, we need to extract the boundary of the piano keyboard in the video. Instead of using traditional CV method to extract coordinates of four corners of the keyboard which is utilized in previous work \cite{Akbari}, we will use CNN to perform this task. This is because deep learning method has a relatively better robustness and efficiency. Details will be discussed later in Section \ref{keyboardDetection}.
+
+\subsection{Keyboard Separation Algorithm}
+
+After the keyboard can be correctly recognized, we will use perspective transformation to normalize the keyboard in video frame into a preset rectangle structure. Then we will work on an algorithm to extract boundaries of each key, namely, further separate the keyboard into individual keys on this.
+
+\subsection{Training Key Recognition Network}
+
+When individual keys can be localized and normalized, it is feasible for us to perform deep learning on each key to determine their conditions (pressed or not pressed). The quality of the eventual generated music heavily depends on the performance of this network.
+
+\subsection{Training Velocity Detection Network}
+
+A music piece without emotional variation is rigid and undesired. To detect the velocity information of a key pressing event, we propose a recurrent network to analysis relative frames in order to derive an approximate velocity value of this pressing.
+
+\subsection{Audio Generation}
+
+Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
+
+\section{Preliminary Results}
+
+\subsection{Deep Learning Based Keyboard Detection}
+\label{keyboardDetection}
 
 Among all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame. Instead, all of them used traditional CV method such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard (Fig.\ref{fig:1}). We have first partially reproduced this algorithm.
 
@@ -126,7 +149,7 @@ After pruning repeated lines, some hard-coded method will be used to finally det
   \item To accurately determine the corners' coordinates, it is required there is no hands posing above the keyboard. It is hard to guarantee since most of piano videos do not contain such a "empty" frame. In some cases, the camera angle will even change slightly, where the traditional method will fail.
 \end{itemize}
 
-Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet (Fig. \ref{fig:2}).
+Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images (Fig. \ref{fig:2}) captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet.
 
 \begin{figure}[h!]
   \hspace{2.1cm}
@@ -141,27 +164,8 @@ To augment this dataset, we also consider artificially putting keyboard images o
 
 In parallel with augmentation of the dataset, we have also started to evaluate the performance of several different CNNs on this task.
 
-\subsection{Finalizing Keyboard Localization Network}
+\subsection{Dataset Pre-process}
 
-After experiments and evaluations on different networks, we will be able to decide which CNN we will use for keyboard localization.
-
-\subsection{Keyboard Separation Algorithm}
-
-After the keyboard can be correctly recognized, we will use perspective transformation to normalize the keyboard in video frame into a preset rectangle structure. Then we will work on an algorithm to extract boundaries of each key, namely, further separate the keyboard into individual keys on this.
-
-\subsection{Training Key Recognition Network}
-
-When individual keys can be localized and normalized, it is feasible for us to perform deep learning on each key to determine their conditions (pressed or not pressed). The quality of the eventual generated music heavily depends on the performance of this network.
-
-\subsection{Training Velocity Detection Network}
-
-A music piece without emotional variation is rigid and undesired. To detect the velocity information of a key pressing event, we propose a recurrent network to analysis relative frames in order to derive an approximate velocity value of this pressing.
-
-\subsection{Audio Generation}
-
-Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
-
-\section{Preliminary Results}
 Currently we've conducted some pre-processing on the dataset and got the following preliminary results.
 
 As mentioned in Section \ref{source}, the dataset we found only consists of several videos and correponding MIDI files. 
