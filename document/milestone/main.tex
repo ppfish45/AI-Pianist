@@ -55,10 +55,10 @@ The notes that the piano generates strongly obey to this visual pattern.
 Hence, it becomes reasonable to recognize the visual patterns from piano-playing videos and reproduce the instrumental sounds using machine learning.
 
 In this project, we aims to achieve hand gesture detection in piano playing and generate the correponding audio afterwards.
-It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a "fake" one.
+It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a ``fake" one.
 
 \section{Problem Statement}
-In this section we will mainly discuss our problem formulation, dataset sources, the evaluation pattern and expected results.
+In this section we will mainly discuss our problem statement, introducing our dataset sources, the evaluation patterns and expected results.
 
 \subsection{Evaluation and Expected Result}
 
@@ -149,16 +149,14 @@ A music piece without emotional variation is rigid and undesired. To detect the 
 Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
 
 \section{Preliminary Results}
-Currently we've conducted some pre-processing on the dataset and got some result.
+Currently we've conducted some pre-processing on the dataset and got the following preliminary results.
 
-\subsection{Dataset}
 The current dataset we have is a external dataset from previous people’s research \cite{Akbari}.
 It consists of several muted videos and their corresponding midi files.
-The major problem is that the audio and the video do not start and end at the same time, and the offset is not provided.
+The first problem is that the audio and the video do not start and end at the same time, and the offset is not provided.
 Hence, we have to manually label the time offset from the beginning of the video to the beginning of the audio.
-This task is accomplished.
 
-While we are labeling the data, we have found several traits of the dataset:
+While we are labelling the data, we have found several traits of the dataset:
 \begin{itemize}
   \item There are several pianists, each with their own playing style.
   \item All keys on the keyboard are covered.
@@ -170,7 +168,7 @@ But there are several shortcomings as well:
 \begin{itemize}
   \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. We doubt its ability of eliminating all false positives including those more subtle ones occurring while playing.
   \item A large portion of the dataset is pressing the keys from left to right one by one using only one finger. This playing pattern sheds less shadow and cause less interference than playing the piano in the real world. The low speed also reduces the difficulty to learn this specific pattern. In short, we worry about a potential overfit on simple playing patterns.
-  \item Several audio files are corrupted. Either they are empty, or they have midi messages with messed up time informations. What’s more, the leftmost key and the rightmost two keys are broken and are not recorded. One particular key somewhere in the middle is presumably broken as well.
+  \item Several audio files are corrupted. Corrupted files are either empty or have midi messages with messed up time informations. Moreover, the leftmost key and the rightmost two keys are broken and therefore not recorded into the MIDI file even though be pressed. One particular key somewhere in the middle is presumably broken as well.
   \item Only one or two from the 14 players plays meaningful pieces instead of random fiddling. We think more meaningful pieces should be included, since playing some common chords may generate common and critical graphic information that is uncommon among piano newbie’s keyboard-scrubbing.
 \end{itemize}
 
