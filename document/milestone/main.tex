@@ -167,6 +167,13 @@ As mentioned in Section \ref{source}, the dataset we found consists of several m
 However, the audio and the video do not start and end at the same time, and the offset is not provided.
 Hence, we have manually labeled the time offset from the beginning of the video to the beginning of the audio in order to match video frames with their corresponding pitch information.
 
+As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
+
+\section{Future Work}
+In the future, there are plenty of work to be done.
+
+\subsection{More Refining on the Dataset}
+  
 While we are labelling the data, we have found several shortcomings of the dataset:
 \begin{itemize}
   \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. This pattern may not be able to represent all kinds of visual interference.
@@ -182,16 +189,14 @@ Given the shortcomings mentioned above, we believe that it is helpful to add our
   \item The ``strength'' information upon pressing a key.
 \end{itemize}
 
-we plan to record our own videos after the milestone, in parallel with the training process.
-As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
+We plan to record our own videos after the milestone, in parallel with the training process.
 
-\section{Future Work}
-  In the future, there are plenty of work to be done. As a conclusion of the ideas above, we will 
-  \begin{itemize}
-    \item enlarge and augment our dataset,
-    \item refine our network structure,
-    \item conduct evaluation on the result
-  \end{itemize}
+
+\begin{itemize}
+  \item enlarge and augment our dataset,
+  \item refine our network structure,
+  \item conduct evaluation on the result
+\end{itemize}
 
 {\small
 \bibliographystyle{ieee}
