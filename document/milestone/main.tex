@@ -153,32 +153,27 @@ Currently we've conducted some pre-processing on the dataset and got the followi
 
 The current dataset we have is a external dataset from previous people’s research \cite{Akbari}.
 It consists of several muted videos and their corresponding midi files.
-The first problem is that the audio and the video do not start and end at the same time, and the offset is not provided.
-Hence, we have to manually label the time offset from the beginning of the video to the beginning of the audio.
 
-While we are labelling the data, we have found several traits of the dataset:
+The audio and the video do not start and end at the same time, and the offset is not provided.
+Hence, we have manually labeled the time offset from the beginning of the video to the beginning of the audio.
+
+While we are labelling the data, we have found several shortcomings of the dataset:
 \begin{itemize}
-  \item There are several pianists, each with their own playing style.
-  \item All keys on the keyboard are covered.
-  \item They have included some fake gestures.
-  \item The playing times vary.
+  \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. This pattern may not be able to represent all kinds of visual interference.
+  \item A large portion of the dataset is pressing the keys slowly from left to right one by one using only one finger. This playing pattern sheds less shadow and cause less interference than playing the piano in the real world.
+  \item Several audio files are corrupted. Either they are empty or the midi messages have messed up timing informations. Moreover, the leftmost key and the rightmost two keys are broken and not recorded into the MIDI file.
+  \item Only one or two from the 14 players play meaningful pieces instead of random fiddling. We think more meaningful pieces should be included, since playing some common chords may generate some exclusive yet common and critical graphic information.
 \end{itemize}
 
-But there are several shortcomings as well:
+Given the shortcomings mentioned above, we believe that it is helpful to add our own dataset, where, beside avoiding these problems, we can also provide the following enhancements
+
 \begin{itemize}
-  \item The fake gestures are almost identical, which is moving the palms above the keyboard horizontally back and forth after finishing playing. We doubt its ability of eliminating all false positives including those more subtle ones occurring while playing.
-  \item A large portion of the dataset is pressing the keys from left to right one by one using only one finger. This playing pattern sheds less shadow and cause less interference than playing the piano in the real world. The low speed also reduces the difficulty to learn this specific pattern. In short, we worry about a potential overfit on simple playing patterns.
-  \item Several audio files are corrupted. Corrupted files are either empty or have midi messages with messed up time informations. Moreover, the leftmost key and the rightmost two keys are broken and therefore not recorded into the MIDI file even though be pressed. One particular key somewhere in the middle is presumably broken as well.
-  \item Only one or two from the 14 players plays meaningful pieces instead of random fiddling. We think more meaningful pieces should be included, since playing some common chords may generate common and critical graphic information that is uncommon among piano newbie’s keyboard-scrubbing.
+  \item The keyboard localization data.
+  \item The ``strength'' information upon pressing a key.
 \end{itemize}
 
-We believe that it is helpful to add our own dataset, where, beside solving these problems, we want to provide the following enhancements
-\begin{itemize}
-  \item Provide the keyboard localization data for training the keyboard localization network.
-  \item Provide the ``strength'' information while pressing the key for training the velocity detection network.
-\end{itemize}
-
-As for the keyboard localization network, we have already collected and labelled some videos from YouTube. As for the key recognition network, we plan to record our own videos after the milestone, in parallel with the training process.
+we plan to record our own videos after the milestone, in parallel with the training process.
+As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
 
 \section{Future Work}
   In the future, there are plenty of work to be done. As a conclusion of the ideas above, we will 
