@@ -5,7 +5,9 @@ import numpy as np
 import imageio
 import copy
 import os
-import uuid
+import sys
+
+sys.path.append('..')
 
 import my_utils
 import dataset
@@ -13,6 +15,8 @@ import dataset
 cur_point = (0, 0)
 lst_image = None
 ref_image = None
+
+dataset.init(os.path.join('..', '..', 'DataSet', 'TestSet'))
 
 def click_and_choose(event, x, y, flags, param):
   global ref_image, lst_image, cur_point
@@ -61,7 +65,7 @@ def label(src_image):
         # imageio.imwrite('cropped.png', cv2.cvtColor(transformed_image, cv2.COLOR_BGR2RGB))
     elif key == ord('q'):
       break
-  
+
   return pts
 
 print('Please input the starting index : ', end='')
@@ -78,13 +82,13 @@ for i in range(index, dataset.get_video_num()):
   n_frame = v.get_num_of_frames()
   sample = v.get_frame(10)
   pts = label(sample)
-  os.makedirs(os.path.join('X_train', str(i - index + offset)), exist_ok=True)
+  os.makedirs(os.path.join('X_test', str(i - index + offset)), exist_ok=True)
   counter = 0
   for j in range(10, n_frame, 5):
     frame = cv2.cvtColor(v.get_frame(j), cv2.COLOR_BGR2RGB)
-    imageio.imwrite(os.path.join('X_train', str(i - index + offset), str(counter) + '.jpg'), frame)
+    imageio.imwrite(os.path.join('X_test', str(i - index + offset), str(counter) + '.jpg'), frame)
     counter += 1
     y.append(np.array(pts))
   y = np.array(y)
-  np.save(os.path.join('y_train', str(i - index + offset)), y)
+  np.save(os.path.join('y_test', str(i - index + offset)), y)
   
