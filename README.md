@@ -31,4 +31,4 @@ Similar as the above dataset, we make two directories, `X_train` and `y_train`, 
 
 Correspondingly, in `y_train`, there are the same number of ground truth files named `0.npy`, `1.npy`, `2.npy` and etc to keep the note labels. Each `npy` file stores an array in the shape of `(N, 128)`, where `N` represents the number of frames in video `1`, and the second dimension stores the note information of certain frame. Since we have overall `128` note level, we take `128` to be the size of second dimension.
 
-The dataset has been uploaded to Google Drive, the link will be posted later.
+The dataset has been uploaded to [Google Drive](https://drive.google.com/file/d/1W8_82fD_WX3FIU61hWBkEEzb_1oR6Avc/view?usp=sharing).

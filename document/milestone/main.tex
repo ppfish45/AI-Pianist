@@ -55,7 +55,9 @@ Hence, it becomes reasonable to recognize the visual patterns from piano-playing
 
 \subsection{Improved Keyboard Detection}
 
-Among all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame. Instead, all of them used traditional CV method such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard. We have first partially reproduced this algorithm.
+Among all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame. 
+Instead, all of them used traditional computer vision methods such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard. 
+We have first partially reproduced this algorithm.
 
 \begin{figure}[h!]
   \begin{subfigure}{0.24\textwidth}
@@ -63,7 +65,7 @@ Among all of the previous work that we have studied, no deep learning based meth
   \caption{Original Image in Grayscale} \label{fig:a}
   \end{subfigure}\hspace*{\fill}
   \begin{subfigure}{0.24\textwidth}
-  \includegraphics[width=\linewidth]{fig/2.jpg}
+  \includegraphics[width=\linewidth]{fig/3.jpg}
   \caption{Gaussian Blurred Image} \label{fig:b}
   \end{subfigure}
 
@@ -94,7 +96,14 @@ After pruning repeated lines, some hard-coded method will be used to finally det
   \item To accurately determine the corners' coordinates, it is required there is no hands posing above the keyboard. It is hard to guarantee since most of piano videos do not contain such a "empty" frame. In some cases, the camera angle will even change slightly, where the traditional method will fail.
 \end{itemize}
 
-Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. However, we do not have any existing dataset for this task. So we labelled a number of images captured from different piano playing videos, which come from the dataset of a previous work, as well as some videos on the Internet.
+Due to the weak robustness of the traditional CV method, we decided to use a convolutional neural network to localize coordinates of four courners of the keyboard. 
+
+However, we do not have any existing dataset for this task. 
+So we labelled a number of images captured from different piano playing videos, which come from the dataset of a previous work \cite{Akbari}, as well as some videos on the Internet.
+
+To augment this dataset, we will also consider to artificially put keyboard image into some random backgrounds and perform some basic transformation such as flipping and stretching on images present.
+
+Parallel to augmentation of the dataset, we have also started to evaluate the performance of several different CNNs on this task.
 
 \begin{figure}[h!]
   \hspace{2.1cm}
@@ -103,10 +112,6 @@ Due to the weak robustness of the traditional CV method, we decided to use a con
   \end{subfigure}
   \caption{Labelling Tool}
 \end{figure}
-
-To augment this dataset, we will also consider to artificially put keyboard image into some random backgrounds and perform some basic transformation such as flipping and stretching on images present.\\
-
-Parallel to augmentation of the dataset, we have also started to evaluate the performance of several different CNNs on this task.
 
 \section{Future Work}
 
@@ -134,7 +139,7 @@ Upon we can derive all notes information, we need to reconstruct them as a MIDI 
 
 
 In this project, we aims to achieve hand gesture detection in piano playing and generate the correponding audio afterwards.
-It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a "fake" one.
+It is also expected that we can thereby generate piano sound by our model without a real sound-producing piano, but only with a ``fake'' one.
 
 \section{Problem Statement}
 In this section we will mainly discuss our problem formulation, dataset sources, the evaluation pattern and expected results.
@@ -176,10 +181,6 @@ In this section we will mainly discuss our problem formulation, dataset sources,
 
 \section{Deep Learning Approach}
 In this section we will propose a deep learning approach towards the above problems.
-
-In all of the previous work that we have studied, no deep learning based method is used to localize the keyboard in video frame.
-Instead, all of them used traditional CV method such as Hough Line Transformation, brightness comparison to determine the coordinates of four corners of the piano keyboard.
-We have partially reproduced this algorithm and have found following drawbacks:
 
 \section{Preliminary Results}
 Currently we've pre-processed the dataset and generated some preliminary labelling result by our neural network.
