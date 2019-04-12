@@ -160,12 +160,11 @@ A music piece without emotional variation is rigid and undesired. To detect the 
 Upon we can derive all notes information, we need to reconstruct them as a MIDI file. During this process, we may need to smooth out some noisy notes such as those with exceptionally short duration. Besides, it may be necessary to normalize the velocity information we retrieved to avoid unexpected dynamic change.
 
 \section{Preliminary Results}
-\label{result}
 Currently we've conducted some pre-processing on the dataset and got the following preliminary results.
 
-As mentioned in Section \ref{source}, the dataset we found consists of several muted videos and their corresponding MIDI files. 
-However, the audio and the video do not start and end at the same time, and the offset is not provided.
-Hence, we have manually labeled the time offset from the beginning of the video to the beginning of the audio in order to match video frames with their corresponding pitch information.
+As mentioned in Section \ref{source}, the dataset we found only consists of several videos and correponding MIDI files. 
+So our very first task is to expose the pitch information from the MIDI files and store the mapping from each video frame to the sounded notes of that frame.
+We fulfilled this task by 
 
 As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
 
@@ -173,6 +172,8 @@ As for the keyboard localization network, we have already collected and labelled
 In the future, there are plenty of work to be done.
 
 \subsection{More Refining on the Dataset}
+\label{result}
+
   
 While we are labelling the data, we have found several shortcomings of the dataset:
 \begin{itemize}
