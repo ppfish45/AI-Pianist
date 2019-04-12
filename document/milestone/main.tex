@@ -102,7 +102,13 @@ After pruning repeated lines, some hard-coded method will be used to finally det
 
 \subsection{Evaluation and Expected Result}
 
-Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. The audio will be smoothed to some configurable extent to sound more natural. To evaluate the performance of our networks, we will compute the $L2$ loss against the original MIDI file. Since each note has its pitch and duration quantified in the MIDI file, this 
+Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
+
+To evaluate the performance of our networks, we will compute each note's duration difference between the original file and our output. Summing the differences up, we will get a total time length of difference as a quantified evaluator of our network. Since each note has its pitch and duration quantified in the MIDI file, cumputing the difference is easily achievable.
+
+In addition, we can set up a survey platform and invite poeple to judge whether the music we generate from playing musical work is natural.
+
+If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
 
 \section{Technical Approach}
 
