@@ -70,6 +70,7 @@ According to the above requirements, we find a suitable dataset, which is used i
 However, there are still labelling and localization work to be done on the dataset in order to perform training on it. These tasks have already been accomplished and will be discussed in Section \ref{result}.
 
 \subsection{Evaluation and Expected Result}
+\label{evaluation}
 
 Our eventual output will be a MIDI file containing a series of notes generated from the visual deep learning results. We expect the audio to correspond to the provided video. Specially, if the video is of playing a piece of musical work, the audio should sound natural and harmonic.
 
@@ -80,6 +81,7 @@ In addition, we can set up a survey platform and invite poeple to judge whether 
 If our network is well-trained, we expect the total difference to be small, and people to be likely to think our generated music is natural.
 
 \section{Technical Approach}
+\label{approach}
 
 In this section, we will discuss the approaches we propose to achieve the objectives.
 
@@ -196,11 +198,11 @@ We plan to record our own videos after the milestone, in parallel with the train
 
 \subsection{Tuning the Networks}
 
-To achieve our goals of keyboard localization, key detection and velocity detection, we will build and tune several seperate networks. Details are covered in section 3.
+To achieve our goals of keyboard localization, key detection and velocity detection, we will build and tune several seperate networks. Details are covered in section \ref{approach}.
 
 \subsection{Conduct Evaluation on the Result}
 
-As is described above in 2.2, we will eventually build a evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this differnece during our experiments.
+As is described above in section \ref{evaluation}, we will eventually build a evaluation system to evaluate the difference between our output and the original music file. We would like to minimize this differnece during our experiments.
 
 {\small
 \bibliographystyle{ieee}
