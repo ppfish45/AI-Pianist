@@ -164,7 +164,9 @@ Currently we've conducted some pre-processing on the dataset and got the followi
 
 As mentioned in Section \ref{source}, the dataset we found only consists of several videos and correponding MIDI files. 
 So our very first task is to expose the pitch information from the MIDI files and store the mapping from each video frame to the sounded notes of that frame.
-We fulfilled this task by 
+
+We fulfilled this task by first extracting all frames from the videos and the notes information from the MIDIs. We then construct and store the mapping as a \textit{numpy} array of size $(N, 128)$, where $N$ represents the number of frames and $128$ stands for the number of pitch possibilities in MIDI file format.
+Each entry of the array has the value of either $1$ or $0$, where $1$ represents ``note\_on'' and $0$ stands for ``note\_off''. Through this data structure, we can easily form a correspondence between frames and notes. And in consistent with expectation, frames and notes are matched perfectly according to our testing result.
 
 As for the keyboard localization network, we have already collected and labelled some videos from YouTube, as is mentioned above.
 
