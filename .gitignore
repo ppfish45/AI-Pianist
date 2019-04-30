@@ -117,3 +117,10 @@ DataSet/Youtube/8.mp4
 
 DataSet/NoteCorrespondence/
 DataSet/NoteCorrespondence.zip
+
+models/keyboard-detection/dataset/X_test
+models/keyboard-detection/dataset/X_train
+models/keyboard-detection/dataset/X_val
+models/keyboard-detection/dataset/y_test
+models/keyboard-detection/dataset/y_train
+models/keyboard-detection/dataset/y_val
