@@ -124,3 +124,4 @@ models/keyboard-detection/dataset/X_val
 models/keyboard-detection/dataset/y_test
 models/keyboard-detection/dataset/y_train
 models/keyboard-detection/dataset/y_val
+models.zip
