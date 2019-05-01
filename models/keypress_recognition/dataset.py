@@ -4,7 +4,6 @@ import copy
 import glob
 import random
 import numpy as np
-from matplotlib.image import imread
 
 path = {
     'X_train': 'dataset/X_train',
@@ -19,6 +18,7 @@ X_path = dict()
 y = dict()
 
 
+# convert completed
 def load_all_data():
     for name in path:
         p = path[name]
@@ -34,7 +34,7 @@ def load_all_data():
                 for file in filelist:
                     X_path[name].append(file)
         if name[0] == 'y':
-            y[name] = np.empty([0, 4, 2])
+            y[name] = np.empty([0, 128])
             # filter .DS_Store out
             files = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x.split('.')[0]))
             files = [os.path.join(p, x) for x in files]
@@ -58,52 +58,68 @@ def load_all_data():
         print('# of ' + x + ': ' + str(len(X_path[x])))
 
 
-def rotate_image(img, image_size=(224, 224), dir=0):
-    ret = copy.copy(img)
-    H = cv2.getRotationMatrix2D((image_size[0] / 2, image_size[1] / 2), -90, 1)
-    for i in range(dir):
-        ret = cv2.warpAffine(ret, H, (ret.shape[1], ret.shape[0]))
-    return ret
+# useless in converted func
+
+# def rotate_image(img, image_size=(224, 224), dir=0):
+#     ret = copy.copy(img)
+#     H = cv2.getRotationMatrix2D((image_size[0] / 2, image_size[1] / 2), -90, 1)
+#     for i in range(dir):
+#         ret = cv2.warpAffine(ret, H, (ret.shape[1], ret.shape[0]))
+#     return ret
+#
+# # useless in converted func
+# def rotate_coordinate(pts, image_size=(224, 224), dir=0):
+#     ret = copy.copy(pts)
+#     for i in range(dir):
+#         ret[:, [0, 1]] = ret[:, [1, 0]]
+#         ret[:, 0] = image_size[1] - 1 - ret[:, 0]
+#     return ret
+#
+# # useless in converted func
+# def show_labelled_image(img, pts, dir=0):
+#     if isinstance(img, str):
+#         img = cv2.imread(img)
+#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     _img = copy.copy(img)
+#     _img = rotate_image(_img, dir=dir)
+#     _pts = rotate_coordinate(pts, dir=dir)
+#     for k, p in enumerate(_pts):
+#         cv2.circle(_img, (int(p[0]), int(p[1])), 2, (255 * (k % 3 == 0), 255 * (k % 2 == 0), 255), 2)
+#     return _img
 
 
-def rotate_coordinate(pts, image_size=(224, 224), dir=0):
-    ret = copy.copy(pts)
-    for i in range(dir):
-        ret[:, [0, 1]] = ret[:, [1, 0]]
-        ret[:, 0] = image_size[1] - 1 - ret[:, 0]
-    return ret
+# convert completed
+
+# newly added func
+def show_corresponding_label(type='train', index=0):
+    # return an np array of size (128,), representing the note occurrence of that frame
+    return y[f'y_{type}'][index]
 
 
-def show_labelled_image(img, pts, dir=0):
-    if isinstance(img, str):
-        img = cv2.imread(img)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    _img = copy.copy(img)
-    _img = rotate_image(_img, dir=dir)
-    _pts = rotate_coordinate(pts, dir=dir)
-    for k, p in enumerate(_pts):
-        cv2.circle(_img, (int(p[0]), int(p[1])), 2, (255 * (k % 3 == 0), 255 * (k % 2 == 0), 255), 2)
-    return _img
-
-
+# convert completed
 def get_sample(type='train', img=True, dir=0, img_size=(640, 360)):
-    ind = random.randint(0, len(X_path[f'X_{type}']))
+    ind = random.randint(0, len(X_path[f'X_{type}']))  # random frame selection index
     path = X_path[f'X_{type}'][ind]
-    pts = y[f'y_{type}'][ind]
+    notes = y[f'y_{type}'][ind]
     if img:
         image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
         image = cv2.resize(image, img_size, interpolation=cv2.INTER_CUBIC)
-        return image, pts
+        return image, notes
     else:
-        return path, pts
+        return path, notes
 
 
+# stay the same
 def get_num_of_data(type='train'):
     return X_path[f'X_{type}'].shape[0]
 
 
 '''
 Image format: NCHW
+Batch format:
+    return_1 -- [batch_size, file_path] img
+    return_2 -- [batch_size, 128] corresponding note
+    
 '''
 
 
@@ -117,6 +133,7 @@ class data_batch:
         if self.max_num == -1:
             self.max_num = get_num_of_data(self.type)
         self.max_num = min(self.max_num, get_num_of_data(self.type))
+        self.random_dir = random_dir
 
     def __iter__(self):
         self.index = 0
@@ -135,16 +152,17 @@ class data_batch:
                     for x in X_path[f'X_{self.type}'][start: end]]
         if self.NCHW:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
-        y_return = copy.copy(y[f'y_{self.type}'][start: end])
-        # resize image
-        y_return *= [self.image_size[0] / 640.0, self.image_size[1] / 360.0]
+        y_return = y[f'y_{self.type}'][start: end]
 
-        # randomly rotate images and coordinates
-        if random_dir:
-            for i in range(batch_size):
-                dir = random.randint(0, 3)
-                X_return[i] = rotate_image(X_return[i], dir=dir)
-                y_return[i] = rotate_coordinate(y_return[i], dir=dir)
+        # # resize image ?
+        # y_return *= [self.image_size[0] / 640.0, self.image_size[1] / 360.0]
+
+        # # randomly rotate images and coordinates
+        # if self.random_dir:
+        #     for i in range(self.batch_size):
+        #         dir = random.randint(0, 3)
+        #         X_return[i] = rotate_image(X_return[i], dir=dir)
+        #         y_return[i] = rotate_coordinate(y_return[i], dir=dir)
 
         self.index += 1
         return np.array(X_return), y_return
