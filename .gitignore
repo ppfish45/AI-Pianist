@@ -107,22 +107,17 @@ venv.bak/
 .DS_Store
 .vscode
 
-DataSet/Youtube/1.mp4
-DataSet/Youtube/2.mp4
-DataSet/Youtube/3.mp4
-DataSet/Youtube/4.mp4
-DataSet/Youtube/5.mp4
-DataSet/Youtube/6.mp4
-DataSet/Youtube/7.mp4
-DataSet/Youtube/8.mp4
+dataset/Youtube/*.mp4
 
-DataSet/NoteCorrespondence/
-DataSet/NoteCorrespondence.zip
+dataset/note_correspondence
+dataset/note_correspondence.zip
 
-models/keyboard-detection/dataset/X_test
-models/keyboard-detection/dataset/X_train
-models/keyboard-detection/dataset/X_val
-models/keyboard-detection/dataset/y_test
-models/keyboard-detection/dataset/y_train
-models/keyboard-detection/dataset/y_val
+models/keyboard_detection/dataset/X_test
+models/keyboard_detection/dataset/X_train
+models/keyboard_detection/dataset/X_val
+models/keyboard_detection/dataset/y_test
+models/keyboard_detection/dataset/y_train
+models/keyboard_detection/dataset/y_val
 models.zip
+
+.idea

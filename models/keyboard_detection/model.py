@@ -16,6 +16,7 @@ import dataset
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 class keyboard_detection_net():
     def __init__(self):
         self.model = models.resnet18(pretrained=True)
@@ -54,13 +55,13 @@ class keyboard_detection_net():
             return (out, transformed_image)
 
     def train(self, batch_size=64, learning_rate=1e-3, num_epochs=5, max_num=-1,
-              best_path='keyboard_model_best.tar', 
+              best_path='keyboard_model_best.tar',
               current_path='keyboard_model_latest.tar',
               decay_every=10,
               save_model=True,
               dirs=[0]):
 
-        model = self.model    
+        model = self.model
         criterion = nn.MSELoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
@@ -80,7 +81,7 @@ class keyboard_detection_net():
                     scheduler.step()
                     model.train()  # Set model to training mode
                 else:
-                    model.eval()   # Set model to evaluate mode
+                    model.eval()  # Set model to evaluate mode
 
                 running_loss = 0.0
                 # Iterate over data.
@@ -124,7 +125,7 @@ class keyboard_detection_net():
                         torch.cuda.empty_cache()
                     else:
                         torch.cpu.empty_cache()
-                        
+
                     bar.value += batch_size
                     bar.description = f'{bar.value} / {total}'
 
