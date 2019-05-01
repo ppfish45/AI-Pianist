@@ -6,6 +6,8 @@ import torchvision.models as models
 import time
 import copy
 import tqdm
+import cv2
+import numpy as np
 
 from ipywidgets import IntProgress
 from IPython.display import display
@@ -22,16 +24,46 @@ class keyboard_detection_net():
         if torch.cuda.is_available():
             self.model.to(device)
 
-    def load_best_model(self, path='best_model.tar'):
+    def load_model(self, path):
         print(f'Trying to load model from {path} ...')
         self.model.load_state_dict(torch.load(path))
+        if torch.cuda.is_available():
+            self.model.to(device)
+        print('done')
 
-    def train(self, batch_size=64, learning_rate=1e-3, num_epochs=5, max_num=-1, path='best_model.tar'):
+    def evaluate(self, X):
+        '''
+        please use NCHW format
+        '''
+        with torch.no_grad():
+            self.model.eval()
+            inputs = torch.Tensor(X)
+            inputs = inputs.to(device)
+            outputs = torch.squeeze(self.model(inputs))
+            outputs = torch.reshape(outputs, [-1, 4, 2])
+            out = outputs.cpu().numpy()
+            transformed_image = []
+            for i in range(X.shape[0]):
+                width = 884
+                height = 106
+                img = np.transpose(X[i], [1, 2, 0])
+                dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+                M = cv2.getPerspectiveTransform(out[i], dst)
+                result = cv2.warpPerspective(img, M, (width, height))
+                transformed_image.append(result)
+            return (out, transformed_image)
+
+    def train(self, batch_size=64, learning_rate=1e-3, num_epochs=5, max_num=-1,
+              best_path='keyboard_model_best.tar', 
+              current_path='keyboard_model_latest.tar',
+              decay_every=10,
+              save_model=True,
+              dirs=[0]):
 
         model = self.model    
         criterion = nn.MSELoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.05)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
 
         since = time.time()
 
@@ -39,6 +71,7 @@ class keyboard_detection_net():
         best_loss = None
 
         for epoch in range(num_epochs):
+
             print('Epoch {}/{}'.format(epoch + 1, num_epochs))
 
             # Each epoch has a training and validation phase
@@ -60,7 +93,9 @@ class keyboard_detection_net():
 
                 display(bar)
 
-                for inputs, labels in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch):
+                for inputs, labels in dataset.data_batch(type=phase, batch_size=batch_size,
+                                                         max_num=max_num_for_this_epoch,
+                                                         dirs=dirs):
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
@@ -85,7 +120,10 @@ class keyboard_detection_net():
                     running_loss += loss.item() * batch_size
 
                     # free unoccupied memory
-                    torch.cuda.empty_cache()
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    else:
+                        torch.cpu.empty_cache()
                         
                     bar.value += batch_size
                     bar.description = f'{bar.value} / {total}'
@@ -101,8 +139,11 @@ class keyboard_detection_net():
             if phase == 'val' and (best_loss == None or epoch_loss < best_loss):
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
-                torch.save(model.state_dict(), path)
-                print(f'The best model has been saved to {path} ...')
+                torch.save(model.state_dict(), best_path)
+                print(f'The best model has been saved to {best_path} ...')
+
+            torch.save(model.state_dict(), current_path)
+            print(f'Current mode has been saved to {current_path} ...')
 
             print()
 
