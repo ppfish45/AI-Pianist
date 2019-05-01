@@ -57,6 +57,17 @@ def load_all_data():
     for x in X_path:
         print('# of ' + x + ': ' + str(len(X_path[x])))
 
+def get_standardized_keyboard(img, pts):
+    '''
+    img: HWC
+    '''
+    width = 884
+    height = 106
+    dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+    M = cv2.getPerspectiveTransform(pts, dst)
+    result = cv2.warpPerspective(img, M, (width, height))
+    return result
+
 def rotate_image(img, image_size=(224, 224), dir=0):
     ret = copy.copy(img)
     H = cv2.getRotationMatrix2D((image_size[0] / 2, image_size[1] / 2), -90, 1)
