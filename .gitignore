@@ -105,6 +105,7 @@ venv.bak/
 
 # cutsom
 .DS_Store
+.vscode
 
 DataSet/Youtube/1.mp4
 DataSet/Youtube/2.mp4
