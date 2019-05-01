@@ -29,21 +29,36 @@ def note_labelling (root, txt_name,index):
     mid = mido.MidiFile(os.path.join(root, mid_name))
 
     label = np.zeros((total_frame,128))
-    boolean = np.zeros(128)
+    # timer = np.zeros(128)
+    # delta_frame = int(mido.tick2second(501,mid.ticks_per_beat,500000.0) * rate)
 
     for tracks in mid.tracks:
         for msg in tracks:
+            # # update timer
+            # timer[label[frame_time]==1] += msg.time
+            # timer[label[frame_time]==0] = 0
+            # get msg time in sec
+            msg_sec_time = mido.tick2second(msg.time,mid.ticks_per_beat,500000.0)
+            # broadcast numpy array
+            # mask = label == 1
+            label[frame_time:frame_time+int(msg_sec_time*rate), :] = label[frame_time, :]
+            # if int(msg.time)> 500 :
+            #     label[frame_time+delta_frame:frame_time+int(msg_sec_time*rate) , mask[frame_time] == 1] = 0
+            # update frame time
+            frame_time += int(msg_sec_time*rate)
+            if (frame_time >= total_frame):
+                frame_time = total_frame - 1
+            # # first iter < 500 < second iter
+            # for j in range(128):
+            #     if (timer[j]>500):
+            #         delta = int(mido.tick2second(timer[j],mid.ticks_per_beat,500000.0) * rate)
+            #         label[frame_time-delta:frame_time, j] = 0
+            # mark the coming frame
             if (msg.type=="note_on"):
-                boolean[int(msg.note)]=1
+                label[frame_time, msg.note] = 1
             elif (msg.type=="note_off"):
-                boolean[int(msg.note)]=0
-            msg_time = mido.tick2second(msg.time,mid.ticks_per_beat,500000.0)
-            for i in range(128):
-                if (boolean[i]==1):
-                    label[frame_time:frame_time+int(msg_time*rate), i] = 1
-                elif (boolean[i]==0):
-                    label[frame_time:frame_time+int(msg_time*rate), i] = 0
-            frame_time += int(msg_time*rate)
+                label[frame_time, msg.note] = 0
+
             
     np.save("../DataSet/y_train/"+str(index)+'.npy', label)
         
