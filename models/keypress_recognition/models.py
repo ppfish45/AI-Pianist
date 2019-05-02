@@ -28,7 +28,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def get_2layer_model(linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(1, 16, 3, padding=1),
+        torch.nn.Conv2d(3, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
@@ -55,7 +55,7 @@ def get_2layer_model(linear_in):
 
 def get_3layer_model(linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(1, 16, 3, padding=1),
+        torch.nn.Conv2d(3, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
@@ -89,7 +89,7 @@ def get_3layer_model(linear_in):
 
 def get_full_model(linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(1, 16, 3, padding=1),
+        torch.nn.Conv2d(3, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
