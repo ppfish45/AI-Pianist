@@ -17,9 +17,14 @@ path = {
 X_path = dict()
 y = dict()
 
+black_mask = [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+              66, 69, 71, 73, 76, 78, 81, 83, 85]
+white_mask = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88]
 
 # convert completed
 def load_all_data():
+    print(white_mask.__len__())
     for name in path:
         p = path[name]
         if name[0] == 'K':
@@ -73,16 +78,19 @@ def get_sample(type='train', img=True, method=0):
     idx = random.randint(0, len(X_path[f'X_{type}']))  # random frame selection index
     path = X_path[f'X_{type}'][idx]
     notes = y[f'y_{type}'][idx]
+    notes = notes[20:108]
     if img:
         image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
         if method == 0:
-            separate.separate(image)
+            white, black = separate.separate(image)
         elif method == 1:
-            separate.separate(image, bundle=True)
+            white, black = separate.separate(image, bundle=True)
+        else:
+            return image, notes
 
-        return image, notes[20:108]
+        return white, black, notes[white_mask], notes[black_mask]
     else:
-        return path, notes[20:108]
+        return path, notes
 
 
 def get_num_of_data(type='train'):
@@ -127,9 +135,13 @@ class data_batch:
         if end >= self.max_num:
             end = self.max_num
             start = end - self.batch_size
-        X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB),
-                               self.image_size, interpolation=cv2.INTER_CUBIC)
-                    for x in X_path[f'X_{self.type}'][start: end]]
+        for x in X_path[f'X_{self.type}'][start: end]:
+            if self.method == 0:
+                separate.separate(x)
+            elif self.method == 1:
+                separate.separate(x, bundle=True)
+        X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), self.image_size, interpolation=cv2.INTER_CUBIC)]
+
         if self.NCHW:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         y_return = y[f'y_{self.type}'][start: end]
