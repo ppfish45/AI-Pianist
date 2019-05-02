@@ -28,7 +28,7 @@ def get_bounding_box(img):
 
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
-    assert img.shape[0] == img_height and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
     white_imgs = []
     black_imgs = []
     for i in range(52):
@@ -54,9 +54,9 @@ def seperate(img):
     Crop the images to seperate keys and list out in this order: white keys
     from lowest to highest, black keys from lowest to highest
 
-    return: A list of image files .
+    return: Two lists of image files, white and black correspondingly.
     """
-    assert img.shape[0] == img_height and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
     white_boxes, black_boxes = get_bounding_box(img)
 
     white_imgs = [
@@ -67,7 +67,7 @@ def seperate(img):
         img[box[0]:box[1], box[2]:box[3]].copy() 
         for box in black_boxes
     ]
-    return white_imgs + black_imgs
+    return white_imgs, black_imgs
     
 
 if __name__ == "__main__":
