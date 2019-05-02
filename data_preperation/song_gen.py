@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 import mido
 import numpy as np
+import sys
 
 # Default speed information
 tempo = 500000.0
@@ -36,7 +37,7 @@ def smooth(track):
     return track
 
 
-message = np.load("1.npy")
+message = np.load(sys.argv[0])
 song = mido.MidiFile(ticks_per_beat=ticks_per_beat)
 track = mido.MidiTrack()
 song.tracks.append(track)
