@@ -1,6 +1,5 @@
 import os
 import cv2
-import copy
 import glob
 import random
 import numpy as np
@@ -57,38 +56,6 @@ def load_all_data():
     for x in X_path:
         print('# of ' + x + ': ' + str(len(X_path[x])))
 
-
-# useless in converted func
-
-# def rotate_image(img, image_size=(224, 224), dir=0):
-#     ret = copy.copy(img)
-#     H = cv2.getRotationMatrix2D((image_size[0] / 2, image_size[1] / 2), -90, 1)
-#     for i in range(dir):
-#         ret = cv2.warpAffine(ret, H, (ret.shape[1], ret.shape[0]))
-#     return ret
-#
-# # useless in converted func
-# def rotate_coordinate(pts, image_size=(224, 224), dir=0):
-#     ret = copy.copy(pts)
-#     for i in range(dir):
-#         ret[:, [0, 1]] = ret[:, [1, 0]]
-#         ret[:, 0] = image_size[1] - 1 - ret[:, 0]
-#     return ret
-#
-# # useless in converted func
-# def show_labelled_image(img, pts, dir=0):
-#     if isinstance(img, str):
-#         img = cv2.imread(img)
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     _img = copy.copy(img)
-#     _img = rotate_image(_img, dir=dir)
-#     _pts = rotate_coordinate(pts, dir=dir)
-#     for k, p in enumerate(_pts):
-#         cv2.circle(_img, (int(p[0]), int(p[1])), 2, (255 * (k % 3 == 0), 255 * (k % 2 == 0), 255), 2)
-#     return _img
-
-
-# convert completed
 
 # newly added func
 def show_corresponding_label(type='train', index=0):
