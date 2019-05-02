@@ -1,8 +1,9 @@
 from mido import MidiFile
 import mido
-mid = MidiFile ('1.wmv.mid')
 
-new_mid_1 = MidiFile(ticks_per_beat = mid.ticks_per_beat)
+mid = MidiFile('1.wmv.mid')
+
+new_mid_1 = MidiFile(ticks_per_beat=mid.ticks_per_beat)
 # new_mid_2 = MidiFile(ticks_per_beat = mid.ticks_per_beat)
 track1 = mido.MidiTrack()
 # track2 = mido.MidiTrack()
@@ -19,7 +20,7 @@ for tracks in mid.tracks:
         # if (time < start_time):
         track1.append(msg)
         # elif(time > stop_time):
-            # track2.append(msg)
+        # track2.append(msg)
 
 new_mid_1.save('1.1.wmv.mid')
 # new_mid_2.save('1.2.wmv.mid')
