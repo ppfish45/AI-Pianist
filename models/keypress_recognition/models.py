@@ -9,19 +9,20 @@ import torch.nn as nn
 import torch.optim as optim
 
 from ..model_wrapper import ModelWrapper
-from seperate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width
+from .separate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width
 
-white_fc_in = (white_key_width //2 //2) * (white_key_height //2 //2) * 32
-black_fc_in = (black_key_width //2 //2) * (black_key_height //2 //2) * 32
-all_fc_in = (img_width//2//2//2//2) * (img_height//2//2//2//2)*32
+white_fc_in = (white_key_width // 2 // 2) * (white_key_height // 2 // 2) * 32
+black_fc_in = (black_key_width // 2 // 2) * (black_key_height // 2 // 2) * 32
+all_fc_in = (img_width // 2 // 2 // 2 // 2) * (img_height // 2 // 2 // 2 // 2) * 32
+
 
 class Flatten(torch.nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
         return x.view(batch_size, -1)
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 white_key_struct = torch.nn.Sequential(
     torch.nn.Conv2d(1, 16, 3, padding=1),
@@ -43,7 +44,6 @@ white_key_struct = torch.nn.Sequential(
     torch.nn.Linear(512, 1),
     torch.nn.Sigmoid()
 )
-
 
 white_key_model = ModelWrapper(
     white_key_struct,
@@ -72,13 +72,11 @@ black_key_struct = torch.nn.Sequential(
     torch.nn.Sigmoid()
 )
 
-
 black_key_model = ModelWrapper(
     black_key_struct,
     torch.nn.BCELoss,
     torch.optim.Adam
 )
-
 
 keyboard_model = torch.nn.Sequential(
     torch.nn.Conv2d(1, 16, 3, padding=1),
