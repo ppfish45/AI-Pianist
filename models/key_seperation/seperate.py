@@ -46,7 +46,12 @@ def get_bounding_box(img):
     return white_imgs, black_imgs
 
 
-def seperate(img):
+def get_bundled_bounding_box(img):
+
+    pass
+
+
+def seperate(img, bundle = False):
     """
     img: An interable, each element is a image file of a keyboard. The
     images should be standardized, i.e. rectangular of size 884, 106
@@ -57,7 +62,10 @@ def seperate(img):
     return: Two lists of image files, white and black correspondingly.
     """
     assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
-    white_boxes, black_boxes = get_bounding_box(img)
+    if bundle:
+        white_boxes, black_boxes = get_bundled_bounding_box(img)
+    else:
+        white_boxes, black_boxes = get_bounding_box(img)
 
     white_imgs = [
         img[box[0]:box[1], box[2]:box[3]].copy() 
@@ -76,6 +84,11 @@ if __name__ == "__main__":
     import glob
     import numpy as np
     import random
+    import tqdm
+    from ipywidgets import IntProgress
+    from IPython.display import display
+
+
     path = {
         'K_train': 'dataset/K_train',
         'K_test': 'dataset/K_test',
@@ -115,8 +128,8 @@ if __name__ == "__main__":
         return X_path
 
     X = load_all_data()
-    for x in X:
-        for path in X[x]:
+    for x in tqdm.tqdm(X):
+        for path in tqdm.tqdm(X[x]):
             img = cv2.imread(path)
             img = np.transpose(img, (1, 0, 2))
             white, black = seperate(img)
@@ -126,7 +139,7 @@ if __name__ == "__main__":
             new_path = new_path.replace('.jpg','_')
             for w in white:
                 white_num += 1
-                cv2.imwrite(f'{new_path}w_{white_num}.jpg', w)
+                cv2.imwrite(f'{new_path}w_{white_num}.jpg', np.transpose(w, (1, 0, 2)))
             for b in black:
                 black_num += 1
-                cv2.imwrite(f'{new_path}b_{black_num}.jpg', b)
+                cv2.imwrite(f'{new_path}b_{black_num}.jpg', np.transpose(b, (1, 0, 2)))
