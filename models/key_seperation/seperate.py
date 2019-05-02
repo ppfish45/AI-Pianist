@@ -21,14 +21,14 @@ assert black_key_height == 106 and black_key_width == 12 and white_key_height ==
 def get_bounding_box(img, bundle = False):
     """
     img: An interable, each element is a image file of a keyboard. The
-    images should be standardized, i.e. rectangular of size 884, 106
+    images should be standardized, i.e. rectangular of size 106, 884
 
     Get cropping bounding boxes of seperate keys and list out in this order: white keys
     from lowest to highest, black keys from lowest to highest
 
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
-    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_imgs = []
     black_imgs = []
 
@@ -55,22 +55,22 @@ def get_bounding_box(img, bundle = False):
 def seperate(img, bundle = False):
     """
     img: An interable, each element is a image file of a keyboard. The
-    images should be standardized, i.e. rectangular of size 884, 106
+    images should be standardized, i.e. rectangular of size 106, 884
 
     Crop the images to seperate keys and list out in this order: white keys
     from lowest to highest, black keys from lowest to highest
 
     return: Two lists of image files, white and black correspondingly.
     """
-    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
     white_imgs = [
-        img[box[0]:box[1], box[2]:box[3]].copy() 
+        img[box[2]:box[3], box[0]:box[1]].copy() 
         for box in white_boxes
     ]
     black_imgs = [
-        img[box[0]:box[1], box[2]:box[3]].copy() 
+        img[box[2]:box[3], box[0]:box[1]].copy() 
         for box in black_boxes
     ]
     return white_imgs, black_imgs
