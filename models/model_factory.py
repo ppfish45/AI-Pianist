@@ -14,18 +14,17 @@ from IPython.display import display
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 class ModelWrapper:
     def __init__(self, model, loss_fn, optimizer, scheduler):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
-    
 
     def load_best_model(self, path='best_model.tar'):
         print(f'Trying to load model from {path} ...')
         self.model.load_state_dict(torch.load(path))
-
 
     def train(self, dataset, batch_size=64, num_epochs=5, max_num=-1, path='best_model.tar'):
         since = time.time()
@@ -42,7 +41,7 @@ class ModelWrapper:
                     self.scheduler.step()
                     self.model.train()  # Set model to training mode
                 else:
-                    self.model.eval()   # Set model to evaluate mode
+                    self.model.eval()  # Set model to evaluate mode
 
                 running_loss = 0.0
                 # Iterate over data.
@@ -55,7 +54,8 @@ class ModelWrapper:
 
                 display(bar)
 
-                for inputs, labels in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch):
+                for inputs, labels in dataset.data_batch(type=phase, batch_size=batch_size,
+                                                         max_num=max_num_for_this_epoch):
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
@@ -81,7 +81,7 @@ class ModelWrapper:
 
                     # free unoccupied memory
                     torch.cuda.empty_cache()
-                        
+
                     bar.value += batch_size
                     bar.description = f'{bar.value} / {total}'
 

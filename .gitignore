@@ -120,15 +120,9 @@ dataset/Youtube/*.mp4
 dataset/note_correspondence
 dataset/note_correspondence.zip
 
-models/keyboard_detection/dataset/X_test
-models/keyboard_detection/dataset/X_train
-models/keyboard_detection/dataset/X_val
-models/keyboard_detection/dataset/y_test
-models/keyboard_detection/dataset/y_train
-models/keyboard_detection/dataset/y_val
-models/keyboard_detection/K_train
-models/keyboard_detection/K_val
-models/keyboard_detection/K_test
+models/keyboard_detection/dataset/
+models/keypress_recognition/dataset/
+models/key_seperation/dataset/
 models.zip
 
 .idea
