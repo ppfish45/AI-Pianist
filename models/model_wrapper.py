@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
 
 import time
 import copy
@@ -24,7 +23,7 @@ class ModelWrapper():
         optim: A optim *class*. Default is torch.optim.Adam
         Example Usage: model = ModelWrapper(torch.nn.Sequential([torch.nn.Linear(10, 1)]), torch.nn.MCELoss, torch.optim.Adam)
         """
-        self.model = models.resnet18(pretrained=True)
+        self.model = model
         self.loss_fn = loss_fn
         self.optim = optim
 
