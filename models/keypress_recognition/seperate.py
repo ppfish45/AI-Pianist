@@ -29,6 +29,7 @@ def get_bounding_box(img, bundle = False):
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
     assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
+    global white_key_width_tolerence, black_key_width_tolerence
     white_imgs = []
     black_imgs = []
 
