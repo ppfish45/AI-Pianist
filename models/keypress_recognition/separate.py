@@ -7,12 +7,14 @@ black_key_count = 36
 white_key_width_strict = 884 // white_key_count  # 17
 white_key_width_tolerence = 2
 white_key_width = white_key_width_tolerence * 2 + white_key_width_strict  # 21
+white_key_width_bundle = 3 * white_key_width_strict  # 51
 
 white_key_height = img_height
 
 black_key_width_strict = white_key_width_strict // 2  # 8
 black_key_width_tolerence = 2
 black_key_width = black_key_width_tolerence * 2 + black_key_width_strict  # 12
+black_key_width_bundle = 3 * black_key_width_strict  # 24
 
 black_key_height = img_height
 
@@ -30,24 +32,23 @@ def get_bounding_box(img, bundle=False):
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
     assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
-    global white_key_width_tolerence, black_key_width_tolerence
+    # global white_key_width_tolerence, black_key_width_tolerence
     white_imgs = []
     black_imgs = []
 
-    if bundle:
-        white_key_width_tolerence = white_key_width_strict
-        black_key_width_tolerence = black_key_width_strict
+    wt = white_key_width_tolerence if bundle else white_key_width_strict
+    bt = black_key_width_tolerence if bundle else black_key_width_strict
 
     for i in range(52):
-        left = max(0, i * white_key_width_strict - white_key_width_tolerence)
-        right = min(img_width, (i + 1) * white_key_width_strict + white_key_width_tolerence)
+        left = max(0, i * white_key_width_strict - wt)
+        right = min(img_width, (i + 1) * white_key_width_strict + wt)
         up = 0
         down = img_height
         white_imgs.append((left, right, up, down))
     for i in [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
               66, 69, 71, 73, 76, 78, 81, 83, 85]:
-        left = max(0, i * black_key_width_strict - black_key_width_tolerence)
-        right = min(img_width, (i + 1) * black_key_width_strict + black_key_width_tolerence)
+        left = max(0, i * black_key_width_strict - bt)
+        right = min(img_width, (i + 1) * black_key_width_strict + bt)
         up = 0
         down = img_height
         black_imgs.append((left, right, up, down))
@@ -64,8 +65,7 @@ def separate(img, bundle=False):
 
     return: Two lists of image files, white and black correspondingly.
     """
-    assert img.shape[1] == img_width and img.shape[
-        0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
     white_imgs = [
