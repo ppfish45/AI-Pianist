@@ -1,6 +1,6 @@
 # Keypress Recognition Network Structure
 
-The previous localization network shall output a 884\*106 image. According to the current settings of `key_seperation` algorithm, each white key will be of size 21\*106, and black key 12\*106.
+The previous localization network shall output a 884\*106 image. We will acquire the configs of `key_seperation` algorithm to calculate the dimentions of the parameters. According to the current settings of `key_seperation` algorithm, each white key will be of size 21\*106, and black key 12\*106.
 
 ## White key
 
