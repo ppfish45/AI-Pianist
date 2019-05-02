@@ -28,7 +28,7 @@ def get_bounding_box(img):
 
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
-    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file not of size {img_height}, {img_width}"
     white_imgs = []
     black_imgs = []
     for i in range(52):
@@ -61,18 +61,18 @@ def seperate(img, bundle = False):
 
     return: Two lists of image files, white and black correspondingly.
     """
-    assert img.shape[0] == img_width and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file not of size {img_height}, {img_width}"
     if bundle:
         white_boxes, black_boxes = get_bundled_bounding_box(img)
     else:
         white_boxes, black_boxes = get_bounding_box(img)
 
     white_imgs = [
-        img[box[0]:box[1], box[2]:box[3]].copy() 
+        img[box[2]:box[3], box[0]:box[1]].copy() 
         for box in white_boxes
     ]
     black_imgs = [
-        img[box[0]:box[1], box[2]:box[3]].copy() 
+        img[box[2]:box[3], box[0]:box[1]].copy() 
         for box in black_boxes
     ]
     return white_imgs, black_imgs
