@@ -28,7 +28,7 @@ def seperate(img):
 
     return: A list of image files .
     """
-    assert img.shape[0] == height and img.shape[1] == width, f"Image file not of size {width}, {height}"
+    assert img.shape[0] == img_height and img.shape[1] == img_height, f"Image file not of size {img_width}, {img_height}"
     white_imgs = [
         img[max(0, i*white_key_width_strict-white_key_width_tolerence):min(img_width, (i+1)*white_key_width_strict+white_key_width_tolerence), :].copy() 
         for i in range(52)
