@@ -154,16 +154,6 @@ class data_batch:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         y_return = y[f'y_{self.type}'][start: end]
 
-        # # resize image ?
-        # y_return *= [self.image_size[0] / 640.0, self.image_size[1] / 360.0]
-
-        # # randomly rotate images and coordinates
-        # if self.random_dir:
-        #     for i in range(self.batch_size):
-        #         dir = random.randint(0, 3)
-        #         X_return[i] = rotate_image(X_return[i], dir=dir)
-        #         y_return[i] = rotate_coordinate(y_return[i], dir=dir)
-
         self.index += 1
         return np.array(X_return), y_return
 
