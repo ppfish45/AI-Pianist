@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from ..model_wrapper import ModelWrapper
-from ..keypress_recognition import separate white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width
+from seperate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width
 
 white_fc_in = (white_key_width //2 //2) * (white_key_height //2 //2) * 32
 black_fc_in = (black_key_width //2 //2) * (black_key_height //2 //2) * 32
@@ -111,6 +111,6 @@ keyboard_model = torch.nn.Sequential(
     torch.nn.MaxPool2d(2),
     Flatten(),
     torch.nn.Linear(all_fc_in, 1024),
-    torch.nn.Linear(1024, 1),
+    torch.nn.Linear(1024, 88),
     torch.nn.Sigmoid()
 )
