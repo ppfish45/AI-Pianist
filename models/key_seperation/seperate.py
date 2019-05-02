@@ -11,10 +11,10 @@ white_key_width = white_key_width_tolerence * 2 + white_key_width_strict
 white_key_height = img_height
 
 black_key_width_strict = white_key_width_strict // 2 # 8
-black_key_width_tolerence = black_key_width_strict // 8 # 1
-black_key_width = black_key_width_tolerence * 2 + black_key_width_strict # 10
+black_key_width_tolerence = 2
+black_key_width = black_key_width_tolerence * 2 + black_key_width_strict # 12
 
-black_key_height = int(img_height * (21 / 32)) # 69
+black_key_height = img_height
 
 assert black_key_height == 69 and black_key_width == 10 and white_key_height == 106 and white_key_width == 17, "Incorrect calculation of key dimentions"
 
