@@ -111,6 +111,6 @@ keyboard_model = torch.nn.Sequential(
     torch.nn.MaxPool2d(2),
     Flatten(),
     torch.nn.Linear(all_fc_in, 1024),
-    torch.nn.Linear(1024, 1),
+    torch.nn.Linear(1024, 88),
     torch.nn.Sigmoid()
 )
