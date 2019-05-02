@@ -6,9 +6,9 @@ import random
 import numpy as np
 
 path = {
-    'X_train': 'dataset/X_train',
-    'X_test': 'dataset/X_test',
-    'X_val': 'dataset/X_val',
+    'K_train': 'dataset/K_train',
+    'K_test': 'dataset/K_test',
+    'K_val': 'dataset/K_val',
     'y_train': 'dataset/y_train',
     'y_test': 'dataset/y_test',
     'y_val': 'dataset/y_val'
@@ -22,7 +22,7 @@ y = dict()
 def load_all_data():
     for name in path:
         p = path[name]
-        if name[0] == 'X':
+        if name[0] == 'K':
             X_path[name] = []
             # filter .DS_Store out
             folders = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x))
@@ -43,15 +43,15 @@ def load_all_data():
                 y[name] = np.concatenate((y[name], np.load(f)), axis=0)
 
     # make sure X and y are perfectly aligned
-    assert len(X_path['X_train']) == y['y_train'].shape[0]
-    assert len(X_path['X_test']) == y['y_test'].shape[0]
-    assert len(X_path['X_val']) == y['y_val'].shape[0]
+    assert len(X_path['K_train']) == y['y_train'].shape[0]
+    assert len(X_path['K_test']) == y['y_test'].shape[0]
+    assert len(X_path['K_val']) == y['y_val'].shape[0]
 
     for _ in ['train', 'test', 'val']:
-        mask = np.arange(len(X_path[f'X_{_}']))
+        mask = np.arange(len(X_path[f'K_{_}']))
         random.shuffle(mask)
-        X_path[f'X_{_}'] = np.array(X_path[f'X_{_}'])
-        X_path[f'X_{_}'] = X_path[f'X_{_}'][mask]
+        X_path[f'K_{_}'] = np.array(X_path[f'K_{_}'])
+        X_path[f'K_{_}'] = X_path[f'K_{_}'][mask]
         y[f'y_{_}'] = y[f'y_{_}'][mask]
 
     for x in X_path:
@@ -97,13 +97,13 @@ def show_corresponding_label(type='train', index=0):
 
 
 # convert completed
-def get_sample(type='train', img=True, dir=0, img_size=(640, 360)):
+def get_sample(type='train', img=True, dir=0, img_size=(334, 40)):
     ind = random.randint(0, len(X_path[f'X_{type}']))  # random frame selection index
     path = X_path[f'X_{type}'][ind]
     notes = y[f'y_{type}'][ind]
     if img:
         image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, img_size, interpolation=cv2.INTER_CUBIC)
+        # image = cv2.resize(image, img_size, interpolation=cv2.INTER_CUBIC)
         return image, notes
     else:
         return path, notes

@@ -33,29 +33,31 @@ def load_all_data():
                 # print('Load ' + f + ' ...')
                 for file in filelist:
                     X_path[name].append(file)
-        if name[0] == 'y':
-            y[name] = np.empty([0, 4, 2])
-            # filter .DS_Store out
-            files = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x.split('.')[0]))
-            files = [os.path.join(p, x) for x in files]
-            for f in files:
-                # print('Load ' + f + ' ...')
-                y[name] = np.concatenate((y[name], np.load(f)), axis=0)
+            # if name[0] == 'y':
+        #     y[name] = np.empty([0, 4, 2])
+        #     # filter .DS_Store out
+        #     files = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x.split('.')[0]))
+        #     files = [os.path.join(p, x) for x in files]
+        #     for f in files:
+        #         # print('Load ' + f + ' ...')
+        #         y[name] = np.concatenate((y[name], np.load(f)), axis=0)
 
-    # make sure X and y are perfectly aligned
-    assert len(X_path['X_train']) == y['y_train'].shape[0]
-    assert len(X_path['X_test']) == y['y_test'].shape[0]
-    assert len(X_path['X_val']) == y['y_val'].shape[0]
+    # # make sure X and y are perfectly aligned
+    # assert len(X_path['X_train']) == y['y_train'].shape[0]
+    # assert len(X_path['X_test']) == y['y_test'].shape[0]
+    # assert len(X_path['X_val']) == y['y_val'].shape[0]
 
     for _ in ['train', 'test', 'val']:
         mask = np.arange(len(X_path[f'X_{_}']))
         random.shuffle(mask)
         X_path[f'X_{_}'] = np.array(X_path[f'X_{_}'])
         X_path[f'X_{_}'] = X_path[f'X_{_}'][mask]
-        y[f'y_{_}'] = y[f'y_{_}'][mask]
+        # y[f'y_{_}'] = y[f'y_{_}'][mask]
 
     for x in X_path:
         print('# of ' + x + ': ' + str(len(X_path[x])))
+
+    return X_path
 
 def get_standardized_keyboard(img, pts):
     '''
@@ -150,8 +152,8 @@ class data_batch:
         y_return *= [self.image_size[0] / 640.0, self.image_size[1] / 360.0]
 
         # randomly rotate images and coordinates
-        if random_dir:
-            for i in range(batch_size):
+        if self.random_dir:
+            for i in range(self.batch_size):
                 dir = random.randint(0, 3)
                 X_return[i] = rotate_image(X_return[i], dir=dir)
                 y_return[i] = rotate_coordinate(y_return[i], dir=dir)
@@ -160,4 +162,4 @@ class data_batch:
         return np.array(X_return), y_return
 
 
-load_all_data()
+# load_all_data()

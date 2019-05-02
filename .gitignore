@@ -118,6 +118,10 @@ models/keyboard_detection/dataset/X_val
 models/keyboard_detection/dataset/y_test
 models/keyboard_detection/dataset/y_train
 models/keyboard_detection/dataset/y_val
+models/keyboard_detection/K_train
+models/keyboard_detection/K_val
+models/keyboard_detection/K_test
 models.zip
 
 .idea
+

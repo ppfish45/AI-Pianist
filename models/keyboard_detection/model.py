@@ -27,7 +27,7 @@ class keyboard_detection_net():
 
     def load_model(self, path):
         print(f'Trying to load model from {path} ...')
-        self.model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path, map_location='cpu'))
         if torch.cuda.is_available():
             self.model.to(device)
         print('done')
@@ -52,7 +52,7 @@ class keyboard_detection_net():
                 M = cv2.getPerspectiveTransform(out[i], dst)
                 result = cv2.warpPerspective(img, M, (width, height))
                 transformed_image.append(result)
-            return (out, transformed_image)
+            return out, transformed_image
 
     def train(self, batch_size=64, learning_rate=1e-3, num_epochs=5, max_num=-1,
               best_path='keyboard_model_best.tar',
