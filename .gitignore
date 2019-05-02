@@ -107,6 +107,14 @@ venv.bak/
 .DS_Store
 .vscode
 
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.pdf
+*.synctex.gz
+
 dataset/Youtube/*.mp4
 
 dataset/note_correspondence
