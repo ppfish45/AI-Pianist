@@ -90,10 +90,7 @@ if __name__ == "__main__":
     path = {
         'K_train': 'dataset/K_train',
         'K_test': 'dataset/K_test',
-        'K_val': 'dataset/K_val',
-        'S_train': 'dataset/S_train',
-        'S_test': 'dataset/S_test',
-        'S_val': 'dataset/S_val'
+        'K_val': 'dataset/K_val'
     }
 
     X_path = dict()
