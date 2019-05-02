@@ -39,3 +39,64 @@ def seperate(img):
     ]
     return white_imgs + black_imgs
     
+
+if __name__ == "__main__":
+    import cv2
+    import os
+    import glob
+    import numpy as np
+    import random
+    path = {
+        'K_train': 'dataset/K_train',
+        'K_test': 'dataset/K_test',
+        'K_val': 'dataset/K_val',
+        'S_train': 'dataset/S_train',
+        'S_test': 'dataset/S_test',
+        'S_val': 'dataset/S_val'
+    }
+
+    X_path = dict()
+    y = dict()
+    # convert completed
+    def load_all_data():
+        for name in path:
+            p = path[name]
+            if name[0] == 'K':
+                X_path[name] = []
+                # filter .DS_Store out
+                folders = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x))
+                folders = [os.path.join(p, x) for x in folders]
+                for f in folders:
+                    filelist = glob.glob(os.path.join(f, '*.jpg'))
+                    filelist = sorted(filelist, key=lambda x: int(x.split('/')[-1].split('.')[0]))
+                    # print('Load ' + f + ' ...')
+                    for file in filelist:
+                        X_path[name].append(file)
+
+        for _ in ['train', 'test', 'val']:
+            mask = np.arange(len(X_path[f'K_{_}']))
+            random.shuffle(mask)
+            X_path[f'K_{_}'] = np.array(X_path[f'K_{_}'])
+            X_path[f'K_{_}'] = X_path[f'K_{_}'][mask]
+
+        for x in X_path:
+            print('# of ' + x + ': ' + str(len(X_path[x])))
+        
+        return X_path
+
+    X = load_all_data()
+    for x in X:
+        for path in X[x]:
+            img = cv2.imread(path)
+            img = np.transpose(img, (1, 0, 2))
+            white, black = seperate(img)
+            white_num = 0
+            black_num = 0
+            new_path = path.replace('K','S')
+            new_path = new_path.replace('.jpg','_')
+            for w in white:
+                white_num += 1
+                cv2.imwrite(f'{new_path}w_{white_num}.jpg', w)
+            for b in black:
+                black_num += 1
+                cv2.imwrite(f'{new_path}b_{black_num}.jpg', b)
