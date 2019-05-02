@@ -3,29 +3,28 @@ import cv2
 import glob
 import random
 import numpy as np
-from ..keypress_recognition import separate
+from . import separate
 
 path = {
-    'K_train': 'dataset/K_train',
-    'K_test': 'dataset/K_test',
-    'K_val': 'dataset/K_val',
-    'y_train': 'dataset/y_train',
-    'y_test': 'dataset/y_test',
-    'y_val': 'dataset/y_val'
+    'K_train': 'keypress_recognition/dataset/K_train',
+    'K_test': 'keypress_recognition/dataset/K_test',
+    'K_val': 'keypress_recognition/dataset/K_val',
+    'y_train': 'keypress_recognition/dataset/y_train',
+    'y_test': 'keypress_recognition/dataset/y_test',
+    'y_val': 'keypress_recognition/dataset/y_val'
 }
 
 X_path = dict()
 y = dict()
 
-black_mask = [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
-              66, 69, 71, 73, 76, 78, 81, 83, 85]
-white_mask = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
-              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88]
+black_mask = np.array([1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+              66, 69, 71, 73, 76, 78, 81, 83, 85])
+white_mask = np.array([0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
 
 # convert completed
 def load_all_data():
-    print(white_mask.__len__())
     for name in path:
         p = path[name]
         if name[0] == 'K':
@@ -76,8 +75,8 @@ def get_sample(type='train', img=True, method=0):
         2 -- no separation
     :return: image, notes of size (88, )
     """
-    idx = random.randint(0, len(X_path[f'X_{type}']))  # random frame selection index
-    path = X_path[f'X_{type}'][idx]
+    idx = random.randint(0, len(X_path[f'K_{type}']))  # random frame selection index
+    path = X_path[f'K_{type}'][idx]
     notes = y[f'y_{type}'][idx]
     notes = notes[20:108]
     if img:
@@ -95,7 +94,7 @@ def get_sample(type='train', img=True, method=0):
 
 
 def get_num_of_data(type='train'):
-    return X_path[f'X_{type}'].shape[0]
+    return X_path[f'K_{type}'].shape[0]
 
 
 def show_corresponding_label(type='train', index=0):
@@ -113,10 +112,9 @@ Batch format: white, black
 
 
 class data_batch:
-    def __init__(self, type='train', method=0, batch_size=64, image_size=(224, 224), NCHW=True, max_num=-1):
+    def __init__(self, type='train', method=2, batch_size=64, NCHW=True, max_num=-1):
         self.type = type
         self.batch_size = batch_size
-        self.image_size = image_size
         self.NCHW = NCHW
         self.max_num = max_num
         if self.max_num == -1:
@@ -138,22 +136,18 @@ class data_batch:
             start = end - self.batch_size
         white = []
         black = []
-        X_return = []
-        for x in X_path[f'X_{self.type}'][start: end]:
+        for x in X_path[f'K_{self.type}'][start: end]:
             if self.method == 0:
-                w, b = separate.separate(x)
+                w, b = separate.separate(cv2.imread(x))
                 white.append(w)
                 black.append(b)
             elif self.method == 1:
-                w, b = separate.separate(x, bundle=True)
+                w, b = separate.separate(cv2.imread(x), bundle=True)
                 white.append(w)
                 black.append(b)
             else:
-                X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), self.image_size,
-                                       interpolation=cv2.INTER_CUBIC)
-                            for x in X_path[f'X_{self.type}'][start: end]]
-
-        if self.NCHW:
+                X_return = np.array([cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
+        if self.NCHW and self.method==2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         y_return = y[f'y_{self.type}'][start: end]
         y_return = y_return[:, 20:108]
@@ -165,5 +159,4 @@ class data_batch:
             return white, black, y_return[:, white_mask], y_return[:, black_mask]
 
 
-if __name__ == "__main__":
-    load_all_data()
+load_all_data()

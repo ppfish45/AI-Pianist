@@ -69,11 +69,11 @@ def separate(img, bundle=False):
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
     white_imgs = [
-        img[box[2]:box[3], box[0]:box[1]].copy()
+        img[box[2]:box[3], box[0]:box[1], :].copy()
         for box in white_boxes
     ]
     black_imgs = [
-        img[box[2]:box[3], box[0]:box[1]].copy()
+        img[box[2]:box[3], box[0]:box[1], :].copy()
         for box in black_boxes
     ]
     return white_imgs, black_imgs
