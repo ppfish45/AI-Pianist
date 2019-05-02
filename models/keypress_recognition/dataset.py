@@ -22,6 +22,7 @@ black_mask = [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42
 white_mask = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
               50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88]
 
+
 # convert completed
 def load_all_data():
     print(white_mask.__len__())
@@ -135,19 +136,33 @@ class data_batch:
         if end >= self.max_num:
             end = self.max_num
             start = end - self.batch_size
+        white = []
+        black = []
+        X_return = []
         for x in X_path[f'X_{self.type}'][start: end]:
             if self.method == 0:
-                separate.separate(x)
+                w, b = separate.separate(x)
+                white.append(w)
+                black.append(b)
             elif self.method == 1:
-                separate.separate(x, bundle=True)
-        X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), self.image_size, interpolation=cv2.INTER_CUBIC)]
+                w, b = separate.separate(x, bundle=True)
+                white.append(w)
+                black.append(b)
+            else:
+                X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), self.image_size,
+                                       interpolation=cv2.INTER_CUBIC)
+                            for x in X_path[f'X_{self.type}'][start: end]]
 
         if self.NCHW:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         y_return = y[f'y_{self.type}'][start: end]
+        y_return = y_return[:, 20:108]
 
         self.index += 1
-        return np.array(X_return), y_return[20:108]
+        if self.method == 2:
+            return np.array(X_return), y_return
+        else:
+            return white, black, y_return[:, white_mask], y_return[:, black_mask]
 
 
 if __name__ == "__main__":
