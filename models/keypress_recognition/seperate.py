@@ -18,7 +18,7 @@ black_key_height = img_height
 
 assert black_key_height == 106 and black_key_width == 12 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions"
 
-def get_bounding_box(img):
+def get_bounding_box(img, bundle = False):
     """
     img: An interable, each element is a image file of a keyboard. The
     images should be standardized, i.e. rectangular of size 106, 884
@@ -31,6 +31,11 @@ def get_bounding_box(img):
     assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_imgs = []
     black_imgs = []
+
+    if bundle:
+        white_key_width_tolerence = white_key_width_strict
+        black_key_width_tolerence = black_key_width_strict
+
     for i in range(52):
         left = max(0, i*white_key_width_strict-white_key_width_tolerence)
         right = min(img_width, (i+1)*white_key_width_strict+white_key_width_tolerence)
@@ -46,10 +51,6 @@ def get_bounding_box(img):
     return white_imgs, black_imgs
 
 
-def get_bundled_bounding_box(img):
-
-    pass
-
 
 def seperate(img, bundle = False):
     """
@@ -62,10 +63,7 @@ def seperate(img, bundle = False):
     return: Two lists of image files, white and black correspondingly.
     """
     assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
-    if bundle:
-        white_boxes, black_boxes = get_bundled_bounding_box(img)
-    else:
-        white_boxes, black_boxes = get_bounding_box(img)
+    white_boxes, black_boxes = get_bounding_box(img, bundle)
 
     white_imgs = [
         img[box[2]:box[3], box[0]:box[1]].copy() 
@@ -92,10 +90,7 @@ if __name__ == "__main__":
     path = {
         'K_train': 'dataset/K_train',
         'K_test': 'dataset/K_test',
-        'K_val': 'dataset/K_val',
-        'S_train': 'dataset/S_train',
-        'S_test': 'dataset/S_test',
-        'S_val': 'dataset/S_val'
+        'K_val': 'dataset/K_val'
     }
 
     X_path = dict()
