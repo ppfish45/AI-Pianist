@@ -1,21 +1,26 @@
 import os
 import cv2
-import copy
 import glob
 import random
 import numpy as np
+from . import separate
 
 path = {
-    'K_train': 'dataset/K_train',
-    'K_test': 'dataset/K_test',
-    'K_val': 'dataset/K_val',
-    'y_train': 'dataset/y_train',
-    'y_test': 'dataset/y_test',
-    'y_val': 'dataset/y_val'
+    'K_train': 'keypress_recognition/dataset/K_train',
+    'K_test': 'keypress_recognition/dataset/K_test',
+    'K_val': 'keypress_recognition/dataset/K_val',
+    'y_train': 'keypress_recognition/dataset/y_train',
+    'y_test': 'keypress_recognition/dataset/y_test',
+    'y_val': 'keypress_recognition/dataset/y_val'
 }
 
 X_path = dict()
 y = dict()
+
+black_mask = np.array([1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+              66, 69, 71, 73, 76, 78, 81, 83, 85])
+white_mask = np.array([0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
 
 # convert completed
@@ -28,10 +33,10 @@ def load_all_data():
             folders = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x))
             folders = [os.path.join(p, x) for x in folders]
             for f in folders:
-                filelist = glob.glob(os.path.join(f, '*.jpg'))
-                filelist = sorted(filelist, key=lambda x: int(x.split('/')[-1].split('.')[0]))
+                fileList = glob.glob(os.path.join(f, '*.jpg'))
+                fileList = sorted(fileList, key=lambda x: int(x.split('/')[-1].split('.')[0]))
                 # print('Load ' + f + ' ...')
-                for file in filelist:
+                for file in fileList:
                     X_path[name].append(file)
         if name[0] == 'y':
             y[name] = np.empty([0, 128])
@@ -40,6 +45,7 @@ def load_all_data():
             files = [os.path.join(p, x) for x in files]
             for f in files:
                 # print('Load ' + f + ' ...')
+                # np.load(f) of size (total_frame, 128)
                 y[name] = np.concatenate((y[name], np.load(f)), axis=0)
 
     # make sure X and y are perfectly aligned
@@ -58,82 +64,63 @@ def load_all_data():
         print('# of ' + x + ': ' + str(len(X_path[x])))
 
 
-# useless in converted func
-
-# def rotate_image(img, image_size=(224, 224), dir=0):
-#     ret = copy.copy(img)
-#     H = cv2.getRotationMatrix2D((image_size[0] / 2, image_size[1] / 2), -90, 1)
-#     for i in range(dir):
-#         ret = cv2.warpAffine(ret, H, (ret.shape[1], ret.shape[0]))
-#     return ret
-#
-# # useless in converted func
-# def rotate_coordinate(pts, image_size=(224, 224), dir=0):
-#     ret = copy.copy(pts)
-#     for i in range(dir):
-#         ret[:, [0, 1]] = ret[:, [1, 0]]
-#         ret[:, 0] = image_size[1] - 1 - ret[:, 0]
-#     return ret
-#
-# # useless in converted func
-# def show_labelled_image(img, pts, dir=0):
-#     if isinstance(img, str):
-#         img = cv2.imread(img)
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     _img = copy.copy(img)
-#     _img = rotate_image(_img, dir=dir)
-#     _pts = rotate_coordinate(pts, dir=dir)
-#     for k, p in enumerate(_pts):
-#         cv2.circle(_img, (int(p[0]), int(p[1])), 2, (255 * (k % 3 == 0), 255 * (k % 2 == 0), 255), 2)
-#     return _img
-
-
 # convert completed
-
-# newly added func
-def show_corresponding_label(type='train', index=0):
-    # return an np array of size (128,), representing the note occurrence of that frame
-    return y[f'y_{type}'][index]
-
-
-# convert completed
-def get_sample(type='train', img=True, dir=0, img_size=(334, 40)):
-    ind = random.randint(0, len(X_path[f'X_{type}']))  # random frame selection index
-    path = X_path[f'X_{type}'][ind]
-    notes = y[f'y_{type}'][ind]
+def get_sample(type='train', img=True, method=0):
+    """
+    :param type: train | val | test
+    :param img: a image indicator
+    :param method:
+        0 -- unbundled separation
+        1 -- bundled separation
+        2 -- no separation
+    :return: image, notes of size (88, )
+    """
+    idx = random.randint(0, len(X_path[f'K_{type}']))  # random frame selection index
+    path = X_path[f'K_{type}'][idx]
+    notes = y[f'y_{type}'][idx]
+    notes = notes[20:108]
     if img:
         image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
-        # image = cv2.resize(image, img_size, interpolation=cv2.INTER_CUBIC)
-        return image, notes
+        if method == 0:
+            white, black = separate.separate(image)
+        elif method == 1:
+            white, black = separate.separate(image, bundle=True)
+        else:
+            return image, notes
+
+        return white, black, notes[white_mask], notes[black_mask]
     else:
         return path, notes
 
 
-# stay the same
 def get_num_of_data(type='train'):
-    return X_path[f'X_{type}'].shape[0]
+    return X_path[f'K_{type}'].shape[0]
+
+
+def show_corresponding_label(type='train', index=0):
+    # return an np array of size (frame_num,128), representing the note occurrence of that video
+    return y[f'y_{type}'][index][1]
 
 
 '''
 Image format: NCHW
-Batch format:
+Batch format: white, black
     return_1 -- [batch_size, file_path] img
-    return_2 -- [batch_size, 128] corresponding note
+    return_2 -- [batch_size, 88] corresponding note
     
 '''
 
 
 class data_batch:
-    def __init__(self, type='train', batch_size=64, image_size=(224, 224), NCHW=True, max_num=-1, random_dir=False):
+    def __init__(self, type='train', method=2, batch_size=64, NCHW=True, max_num=-1):
         self.type = type
         self.batch_size = batch_size
-        self.image_size = image_size
         self.NCHW = NCHW
         self.max_num = max_num
         if self.max_num == -1:
             self.max_num = get_num_of_data(self.type)
         self.max_num = min(self.max_num, get_num_of_data(self.type))
-        self.random_dir = random_dir
+        self.method = method
 
     def __iter__(self):
         self.index = 0
@@ -147,25 +134,29 @@ class data_batch:
         if end >= self.max_num:
             end = self.max_num
             start = end - self.batch_size
-        X_return = [cv2.resize(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB),
-                               self.image_size, interpolation=cv2.INTER_CUBIC)
-                    for x in X_path[f'X_{self.type}'][start: end]]
-        if self.NCHW:
+        white = []
+        black = []
+        for x in X_path[f'K_{self.type}'][start: end]:
+            if self.method == 0:
+                w, b = separate.separate(cv2.imread(x))
+                white.append(w)
+                black.append(b)
+            elif self.method == 1:
+                w, b = separate.separate(cv2.imread(x), bundle=True)
+                white.append(w)
+                black.append(b)
+            else:
+                X_return = np.array([cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
+        if self.NCHW and self.method==2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         y_return = y[f'y_{self.type}'][start: end]
-
-        # # resize image ?
-        # y_return *= [self.image_size[0] / 640.0, self.image_size[1] / 360.0]
-
-        # # randomly rotate images and coordinates
-        # if self.random_dir:
-        #     for i in range(self.batch_size):
-        #         dir = random.randint(0, 3)
-        #         X_return[i] = rotate_image(X_return[i], dir=dir)
-        #         y_return[i] = rotate_coordinate(y_return[i], dir=dir)
+        y_return = y_return[:, 20:108]
 
         self.index += 1
-        return np.array(X_return), y_return
+        if self.method == 2:
+            return np.array(X_return), y_return
+        else:
+            return white, black, y_return[:, white_mask], y_return[:, black_mask]
 
 
 load_all_data()

@@ -13,6 +13,10 @@ from IPython.display import display
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+black_mask = np.array([1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+              66, 69, 71, 73, 76, 78, 81, 83, 85])
+white_mask = np.array([0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88])
 
 
 class ModelWrapper():
@@ -41,23 +45,38 @@ class ModelWrapper():
         '''
         please use NCHW format
         '''
+        self.model.eval()
         with torch.no_grad():
-            self.model.eval()
             inputs = torch.Tensor(X)
             inputs = inputs.to(device)
-            outputs = torch.squeeze(self.model(inputs))
-            outputs = torch.reshape(outputs, [-1, 4, 2])
-            out = outputs.cpu().numpy()
-            transformed_image = []
-            for i in range(X.shape[0]):
-                width = 884
-                height = 106
-                img = np.transpose(X[i], [1, 2, 0])
-                dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
-                M = cv2.getPerspectiveTransform(out[i], dst)
-                result = cv2.warpPerspective(img, M, (width, height))
-                transformed_image.append(result)
-            return out, transformed_image
+            outputs = self.model(inputs)
+            return outputs
+
+    def get_accuracy(self, X, y, threshold=0.5):
+        y_pred = self.evaluate(X)
+        mask = y_pred < threshold
+        y_pred[mask] = 0
+        y_pred[np.logical_not(mask)] = 1
+        if y.shape[1] == 88:
+            white_acc = [[None, None], [None, None]]
+            black_acc = [[None, None], [None, None]]
+            white_y = y[white_mask]
+            black_y = y[black_mask]
+            white_y_pred = y_pred[white_mask]
+            black_y_pred = y_pred[black_mask]
+            for i in (0, 1):
+                for j in (0, 1):
+                    white_acc[i][j] = np.sum(np.logical_and(white_y_pred == i, white_y == j).astype('uint8'))
+                    black_acc[i][j] = np.sum(np.logical_and(black_y_pred == i, black_y == j).astype('uint8'))
+            return white_acc, black_acc
+            
+        else:
+            acc = [[None, None], [None, None]]
+            for i in (0, 1):
+                for j in (0, 1):
+                    acc[i][j] = np.sum(np.logical_and(y_pred == i, y == j).astype('uint8'))
+            return acc
+
 
     def train(
         self, 
@@ -70,12 +89,12 @@ class ModelWrapper():
         current_path='keyboard_model_latest.tar',
         decay_every=10,
         save_model=True,
-        dirs=[0]
+        method=2
     ):
         """
         dataset must have these APIs: 
         get_num_of_data(phase: "train"|"val") -> int, 
-        data_batch(type: "train"|"val", batch_size: int, max_num=max_num_for_this_epoch: int, dirs: list) -> iterable
+        data_batch(type: "train"|"val", batch_size: int, max_num=max_num_for_this_epoch: int, method: int) -> iterable
         """
         model = self.model
         criterion = self.loss_fn()
@@ -86,6 +105,8 @@ class ModelWrapper():
 
         best_model_wts = copy.deepcopy(model.state_dict())
         best_loss = None
+
+        print("Accuracy Matrix: both_0, pred_0_but_out_1, pred_1_but_out_0, both_1")
 
         for epoch in range(num_epochs):
 
@@ -110,9 +131,9 @@ class ModelWrapper():
 
                 display(bar)
 
-                for inputs, labels in dataset.data_batch(type=phase, batch_size=batch_size,
-                                                         max_num=max_num_for_this_epoch,
-                                                         dirs=dirs):
+                for i in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch, method=method):
+                    if method == 2:
+                        inputs, labels = i
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
@@ -125,7 +146,10 @@ class ModelWrapper():
 
                     # forward
                     outputs = model(inputs)
-                    labels = torch.reshape(labels, [-1, 8])
+                    # if method == 2:
+                    #     labels = torch.reshape(labels, [-1, 88])
+                    # else:
+                    #     labels = torch.reshape(labels, [-1, 1])
                     loss = criterion(outputs, labels)
 
                     # backward + optimize only if in training phase
@@ -139,8 +163,6 @@ class ModelWrapper():
                     # free unoccupied memory
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
-                    else:
-                        torch.cpu.empty_cache()
 
                     bar.value += batch_size
                     bar.description = f'{bar.value} / {total}'
@@ -151,6 +173,10 @@ class ModelWrapper():
 
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
+                self.model.eval()
+                acc_result = self.get_accuracy(inputs, labels)
+                print(acc_result)
+                self.model.train()
 
             # deep copy the model
             if phase == 'val' and (best_loss == None or epoch_loss < best_loss):
