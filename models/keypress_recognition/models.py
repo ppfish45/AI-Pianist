@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from ..model_wrapper import ModelWrapper
+from .model_wrapper import ModelWrapper
 from .separate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width, white_key_width_bundle, black_key_width_bundle
 
 white_fc_in = (white_key_width // 2 // 2) * (white_key_height // 2 // 2) * 32
