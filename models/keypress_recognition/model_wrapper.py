@@ -41,23 +41,12 @@ class ModelWrapper():
         '''
         please use NCHW format
         '''
+        self.model.eval()
         with torch.no_grad():
-            self.model.eval()
             inputs = torch.Tensor(X)
             inputs = inputs.to(device)
-            outputs = torch.squeeze(self.model(inputs))
-            outputs = torch.reshape(outputs, [-1, 4, 2])
-            out = outputs.cpu().numpy()
-            transformed_image = []
-            for i in range(X.shape[0]):
-                width = 884
-                height = 106
-                img = np.transpose(X[i], [1, 2, 0])
-                dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
-                M = cv2.getPerspectiveTransform(out[i], dst)
-                result = cv2.warpPerspective(img, M, (width, height))
-                transformed_image.append(result)
-            return out, transformed_image
+            outputs = self.model(inputs)
+            return outputs
 
     def train(
         self, 
