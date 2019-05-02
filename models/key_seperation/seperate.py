@@ -5,8 +5,8 @@ white_key_count = 52
 black_key_count = 36
 
 white_key_width_strict = 884 // white_key_count # 17
-white_key_width_tolerence = 0
-white_key_width = white_key_width_tolerence * 2 + white_key_width_strict
+white_key_width_tolerence = 2
+white_key_width = white_key_width_tolerence * 2 + white_key_width_strict # 21
 
 white_key_height = img_height
 
