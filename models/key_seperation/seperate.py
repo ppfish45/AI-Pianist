@@ -16,7 +16,7 @@ black_key_width = black_key_width_tolerence * 2 + black_key_width_strict # 12
 
 black_key_height = img_height
 
-assert black_key_height == 69 and black_key_width == 10 and white_key_height == 106 and white_key_width == 17, "Incorrect calculation of key dimentions"
+assert black_key_height == 106 and black_key_width == 12 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions"
 
 def seperate(img):
     """
