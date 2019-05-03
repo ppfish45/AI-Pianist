@@ -151,7 +151,8 @@ class ModelWrapper():
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
-                    print(inputs[0].shape)
+                    # print(inputs.shape)  # inputs[0] : CHW
+                    # print(labels.shape)
                     # zero the parameter gradients
                     optimizer.zero_grad()
 

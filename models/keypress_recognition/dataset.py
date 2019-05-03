@@ -17,10 +17,12 @@ path = {
 X_path = dict()
 y = dict()
 
-black_mask = np.array([1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
-              66, 69, 71, 73, 76, 78, 81, 83, 85])
-white_mask = np.array([0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
-              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
+black_mask = np.array(
+    [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+     66, 69, 71, 73, 76, 78, 81, 83, 85])
+white_mask = np.array(
+    [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+     50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
 
 # convert completed
@@ -108,6 +110,10 @@ Batch format: white, black
     return_1 -- [batch_size, file_path] img
     return_2 -- [batch_size, 88] corresponding note
     
+    or 
+    
+    black/white -- [batch_size * 36/54, 3, 106, 12]
+    
 '''
 
 
@@ -136,29 +142,29 @@ class data_batch:
             start = end - self.batch_size
 
         if self.method == 0:
-            white = np.empty((self.batch_size*52, separate.white_key_height, separate.white_key_width, 3))
-            black = np.empty((self.batch_size*36, separate.black_key_height, separate.black_key_width, 3))
+            white = np.empty((0, separate.white_key_height, separate.white_key_width, 3))
+            black = np.empty((0, separate.black_key_height, separate.black_key_width, 3))
 
         elif self.method == 1:
-            white = np.empty((self.batch_size*52, separate.white_key_height, separate.white_key_width_bundle, 3))
-            black = np.empty((self.batch_size*36, separate.black_key_height, separate.black_key_width_bundle, 3))
+            white = np.empty((0, separate.white_key_height, separate.white_key_width_bundle, 3))
+            black = np.empty((0, separate.black_key_height, separate.black_key_width_bundle, 3))
 
-        for x in X_path[f'K_{self.type}'][start: end]:
-            if self.method == 0:
+        if self.method == 0:
+            for x in X_path[f'K_{self.type}'][start: end]:
                 w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB))
-                for ww in b:
-                    print(ww.shape, end = ' ')
-                white = np.concatenate((white, np.array(w)), axis = 0)
-                black = np.concatenate((black, np.array(b)), axis = 0)
-            elif self.method == 1:
+                white = np.concatenate((white, np.array(w)), axis=0)
+                black = np.concatenate((black, np.array(b)), axis=0)
+        elif self.method == 1:
+            for x in X_path[f'K_{self.type}'][start: end]:
                 w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), bundle=True)
-                white = np.concatenate(white, w)
-                black = np.concatenate(black, b)
-            else:
-                X_return = np.array([cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
-        if self.NCHW and self.method==2:
+                white = np.concatenate((white, np.array(w)), axis=0)
+                black = np.concatenate((black, np.array(b)), axis=0)
+        else:
+            X_return = np.array(
+                [cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
+        if self.NCHW and self.method == 2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
-        if self.NCHW and (self.method==0 or self.method==1):
+        if self.NCHW and (self.method == 0 or self.method == 1):
             white = np.array(np.transpose(white, (0, 3, 1, 2)))
             black = np.array(np.transpose(black, (0, 3, 1, 2)))
         y_return = y[f'y_{self.type}'][start: end]

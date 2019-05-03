@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 from .model_wrapper import ModelWrapper
-from .separate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width, white_key_width_bundle, black_key_width_bundle
+from .separate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width, \
+    white_key_width_bundle, black_key_width_bundle
 
 white_fc_in = (white_key_width // 2 // 2) * (white_key_height // 2 // 2) * 32
 black_fc_in = (black_key_width // 2 // 2) * (black_key_height // 2 // 2) * 32
@@ -25,6 +26,7 @@ class Flatten(torch.nn.Module):
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def get_2layer_model(linear_in):
     model_struct = torch.nn.Sequential(
@@ -52,6 +54,7 @@ def get_2layer_model(linear_in):
         torch.nn.BCELoss,
         torch.optim.Adam
     )
+
 
 def get_3layer_model(linear_in):
     model_struct = torch.nn.Sequential(
@@ -86,6 +89,7 @@ def get_3layer_model(linear_in):
         torch.nn.BCELoss,
         torch.optim.Adam
     )
+
 
 def get_full_model(linear_in):
     model_struct = torch.nn.Sequential(
@@ -127,6 +131,7 @@ def get_full_model(linear_in):
         torch.nn.BCELoss,
         torch.optim.Adam
     )
+
 
 white_key_model = get_2layer_model(white_fc_in)
 black_key_model = get_2layer_model(black_fc_in)

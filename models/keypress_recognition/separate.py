@@ -20,7 +20,7 @@ black_key_width_bundle = 3 * black_key_width_strict  # 24
 
 black_key_height = img_height
 
-assert black_key_height == 106 and black_key_width == 12 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions"
+assert black_key_height == 106 and black_key_width == 12 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions "
 
 
 def get_bounding_box(img, bundle=False):
@@ -33,13 +33,14 @@ def get_bounding_box(img, bundle=False):
 
     return: A list of dimension 4 bounding boxes: left, right, up, down.
     """
-    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
+    assert img.shape[1] == img_width and img.shape[
+        0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     # global white_key_width_tolerence, black_key_width_tolerence
     white_imgs = []
     black_imgs = []
 
-    wt =  white_key_width_strict if bundle else white_key_width_tolerence
-    bt =  black_key_width_strict if bundle else black_key_width_tolerence
+    wt = white_key_width_strict if bundle else white_key_width_tolerence
+    bt = black_key_width_strict if bundle else black_key_width_tolerence
 
     for i in range(52):
         left = i * white_key_width_strict - wt
@@ -67,20 +68,17 @@ def separate(img, bundle=False):
 
     return: Two lists of image files, white and black correspondingly.
     """
-    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
+    assert img.shape[1] == img_width and img.shape[
+        0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
     if bundle:
         white_padding = np.zeros((white_key_height, white_key_width_strict, 3), dtype='uint8')
-        black_padding = np.zeros((black_key_height, black_key_width_strict, 3), dtype='uint8')
     else:
         white_padding = np.zeros((white_key_height, white_key_width_tolerence, 3), dtype='uint8')
-        black_padding = np.zeros((black_key_height, black_key_width_tolerence, 3), dtype='uint8')
-
 
     box = white_boxes[0]
     first_white_img = img[box[2]:box[3], 0:box[1], :].copy()
-    print(white_padding.shape, first_white_img.shape)
     first_white_img = np.concatenate((white_padding, first_white_img), axis=1)
     box = white_boxes[-1]
     last_white_img = img[box[2]:box[3], box[0]:img_width, :].copy()
@@ -92,19 +90,11 @@ def separate(img, bundle=False):
     ]
     white_imgs += [last_white_img]
 
-
-    box = black_boxes[0]
-    first_black_img = img[box[2]:box[3], 0:box[1], :].copy()
-    first_black_img = np.concatenate((black_padding, first_black_img), axis=1)
-    box = black_boxes[-1]
-    last_black_img = img[box[2]:box[3], box[0]:img_width, :].copy()
-    last_black_img = np.concatenate((last_black_img, black_padding), axis=1)
-    black_imgs = [first_black_img]
-    black_imgs += [
+    # there is no padding needed for black_imgs
+    black_imgs = [
         img[box[2]:box[3], box[0]:box[1], :].copy()
-        for box in black_boxes[1:-1]
+        for box in black_boxes
     ]
-    black_imgs += [last_black_img]
     return white_imgs, black_imgs
 
 
