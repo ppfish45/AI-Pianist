@@ -157,6 +157,7 @@ class data_batch:
         elif self.method == 1:
             for x in X_path[f'K_{self.type}'][start: end]:
                 w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), bundle=True)
+                print(np.array(b).shape)
                 white = np.concatenate((white, np.array(w)), axis=0)
                 black = np.concatenate((black, np.array(b)), axis=0)
         else:

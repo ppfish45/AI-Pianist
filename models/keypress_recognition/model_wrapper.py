@@ -11,12 +11,13 @@ import numpy as np
 from ipywidgets import IntProgress
 from IPython.display import display
 
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-black_mask = np.array([1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
-              66, 69, 71, 73, 76, 78, 81, 83, 85])
-white_mask = np.array([0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
-              50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88])
+black_mask = np.array(
+    [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+     66, 69, 71, 73, 76, 78, 81, 83, 85])
+white_mask = np.array(
+    [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+     50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88])
 
 
 class ModelWrapper():
@@ -69,7 +70,7 @@ class ModelWrapper():
                     white_acc[i][j] = np.sum(np.logical_and(white_y_pred == i, white_y == j).astype('uint8'))
                     black_acc[i][j] = np.sum(np.logical_and(black_y_pred == i, black_y == j).astype('uint8'))
             return white_acc, black_acc
-            
+
         else:
             acc = [[None, None], [None, None]]
             for i in (0, 1):
@@ -77,20 +78,19 @@ class ModelWrapper():
                     acc[i][j] = np.sum(np.logical_and(y_pred == i, y == j).astype('uint8'))
             return acc
 
-
     def train(
-        self, 
-        dataset,
-        key_type=None,
-        batch_size=64, 
-        learning_rate=1e-3,
-        num_epochs=5, 
-        max_num=-1,
-        best_path='keyboard_model_best.tar',
-        current_path='keyboard_model_latest.tar',
-        decay_every=10,
-        save_model=True,
-        method=2
+            self,
+            dataset,
+            key_type=None,
+            batch_size=64,
+            learning_rate=1e-3,
+            num_epochs=5,
+            max_num=-1,
+            best_path='keyboard_model_best.tar',
+            current_path='keyboard_model_latest.tar',
+            decay_every=10,
+            save_model=True,
+            method=2
     ):
         """
         dataset must have these APIs: 
@@ -132,7 +132,8 @@ class ModelWrapper():
 
                 display(bar)
 
-                for i in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch, method=method):
+                for i in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch,
+                                            method=method):
                     if method == 2:
                         inputs, labels = i
                     else:
@@ -151,8 +152,8 @@ class ModelWrapper():
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
-                    # print(inputs.shape)  # inputs[0] : CHW
-                    # print(labels.shape)
+                    print(inputs.shape)  # inputs[0] : CHW
+                    print(labels.shape)
                     # zero the parameter gradients
                     optimizer.zero_grad()
 
