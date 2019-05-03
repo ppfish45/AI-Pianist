@@ -81,6 +81,7 @@ class ModelWrapper():
     def train(
         self, 
         dataset,
+        key_type=None,
         batch_size=64, 
         learning_rate=1e-3,
         num_epochs=5, 
@@ -134,6 +135,15 @@ class ModelWrapper():
                 for i in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch, method=method):
                     if method == 2:
                         inputs, labels = i
+                    else:
+                        if key_type == 'white':
+                            inputs = i[0]
+                            labels = i[2]
+                        elif key_type == 'black':
+                            inputs = i[1]
+                            labels = i[3]
+                        else:
+                            raise ValueError("Fuck you. Specify key type 'white'|'black'")
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
@@ -141,6 +151,7 @@ class ModelWrapper():
                     inputs = inputs.to(device)
                     labels = labels.to(device)
 
+                    print(inputs[0].shape)
                     # zero the parameter gradients
                     optimizer.zero_grad()
 

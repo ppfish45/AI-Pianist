@@ -1,3 +1,5 @@
+import numpy as np
+
 img_width = 884
 img_height = 106
 
@@ -23,7 +25,7 @@ assert black_key_height == 106 and black_key_width == 12 and white_key_height ==
 
 def get_bounding_box(img, bundle=False):
     """
-    img: An interable, each element is a image file of a keyboard. The
+    img: An image file of a keyboard. The
     images should be standardized, i.e. rectangular of size 106, 884
 
     Get cropping bounding boxes of seperate keys and list out in this order: white keys
@@ -36,19 +38,19 @@ def get_bounding_box(img, bundle=False):
     white_imgs = []
     black_imgs = []
 
-    wt = white_key_width_tolerence if bundle else white_key_width_strict
-    bt = black_key_width_tolerence if bundle else black_key_width_strict
+    wt =  white_key_width_strict if bundle else white_key_width_tolerence
+    bt =  black_key_width_strict if bundle else black_key_width_tolerence
 
     for i in range(52):
-        left = max(0, i * white_key_width_strict - wt)
-        right = min(img_width, (i + 1) * white_key_width_strict + wt)
+        left = i * white_key_width_strict - wt
+        right = (i + 1) * white_key_width_strict + wt
         up = 0
         down = img_height
         white_imgs.append((left, right, up, down))
     for i in [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
               66, 69, 71, 73, 76, 78, 81, 83, 85]:
-        left = max(0, i * black_key_width_strict - bt)
-        right = min(img_width, (i + 1) * black_key_width_strict + bt)
+        left = i * black_key_width_strict - bt
+        right = (i + 1) * black_key_width_strict + bt
         up = 0
         down = img_height
         black_imgs.append((left, right, up, down))
@@ -57,7 +59,7 @@ def get_bounding_box(img, bundle=False):
 
 def separate(img, bundle=False):
     """
-    img: An interable, each element is a image file of a keyboard. The
+    img: An image file of a keyboard. The
     images should be standardized, i.e. rectangular of size 106, 884
 
     Crop the images to seperate keys and list out in this order: white keys
@@ -68,14 +70,41 @@ def separate(img, bundle=False):
     assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
-    white_imgs = [
+    if bundle:
+        white_padding = np.zeros((white_key_height, white_key_width_strict, 3), dtype='uint8')
+        black_padding = np.zeros((black_key_height, black_key_width_strict, 3), dtype='uint8')
+    else:
+        white_padding = np.zeros((white_key_height, white_key_width_tolerence, 3), dtype='uint8')
+        black_padding = np.zeros((black_key_height, black_key_width_tolerence, 3), dtype='uint8')
+
+
+    box = white_boxes[0]
+    first_white_img = img[box[2]:box[3], 0:box[1], :].copy()
+    print(white_padding.shape, first_white_img.shape)
+    first_white_img = np.concatenate((white_padding, first_white_img), axis=1)
+    box = white_boxes[-1]
+    last_white_img = img[box[2]:box[3], box[0]:img_width, :].copy()
+    last_white_img = np.concatenate((last_white_img, white_padding), axis=1)
+    white_imgs = [first_white_img]
+    white_imgs += [
         img[box[2]:box[3], box[0]:box[1], :].copy()
-        for box in white_boxes
+        for box in white_boxes[1:-1]
     ]
-    black_imgs = [
+    white_imgs += [last_white_img]
+
+
+    box = black_boxes[0]
+    first_black_img = img[box[2]:box[3], 0:box[1], :].copy()
+    first_black_img = np.concatenate((black_padding, first_black_img), axis=1)
+    box = black_boxes[-1]
+    last_black_img = img[box[2]:box[3], box[0]:img_width, :].copy()
+    last_black_img = np.concatenate((last_black_img, black_padding), axis=1)
+    black_imgs = [first_black_img]
+    black_imgs += [
         img[box[2]:box[3], box[0]:box[1], :].copy()
-        for box in black_boxes
+        for box in black_boxes[1:-1]
     ]
+    black_imgs += [last_black_img]
     return white_imgs, black_imgs
 
 

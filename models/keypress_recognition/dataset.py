@@ -134,21 +134,33 @@ class data_batch:
         if end >= self.max_num:
             end = self.max_num
             start = end - self.batch_size
-        white = []
-        black = []
+
+        if self.method == 0:
+            white = np.empty((self.batch_size*52, separate.white_key_height, separate.white_key_width, 3))
+            black = np.empty((self.batch_size*36, separate.black_key_height, separate.black_key_width, 3))
+
+        elif self.method == 1:
+            white = np.empty((self.batch_size*52, separate.white_key_height, separate.white_key_width_bundle, 3))
+            black = np.empty((self.batch_size*36, separate.black_key_height, separate.black_key_width_bundle, 3))
+
         for x in X_path[f'K_{self.type}'][start: end]:
             if self.method == 0:
-                w, b = separate.separate(cv2.imread(x))
-                white.append(w)
-                black.append(b)
+                w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB))
+                for ww in b:
+                    print(ww.shape, end = ' ')
+                white = np.concatenate((white, np.array(w)), axis = 0)
+                black = np.concatenate((black, np.array(b)), axis = 0)
             elif self.method == 1:
-                w, b = separate.separate(cv2.imread(x), bundle=True)
-                white.append(w)
-                black.append(b)
+                w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), bundle=True)
+                white = np.concatenate(white, w)
+                black = np.concatenate(black, b)
             else:
                 X_return = np.array([cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
         if self.NCHW and self.method==2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
+        if self.NCHW and (self.method==0 or self.method==1):
+            white = np.array(np.transpose(white, (0, 3, 1, 2)))
+            black = np.array(np.transpose(black, (0, 3, 1, 2)))
         y_return = y[f'y_{self.type}'][start: end]
         y_return = y_return[:, 20:108]
 
