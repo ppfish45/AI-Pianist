@@ -31,7 +31,7 @@ def get_bounding_box(img, bundle=False):
     Get cropping bounding boxes of seperate keys and list out in this order: white keys
     from lowest to highest, black keys from lowest to highest
 
-    return: A list of dimension 4 bounding boxes: left, right, up, down.
+    return: A list of dimension 4 bounding boxes: left, right, up, down. Can be out of bound.
     """
     assert img.shape[1] == img_width and img.shape[
         0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
@@ -72,29 +72,21 @@ def separate(img, bundle=False):
         0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
     white_boxes, black_boxes = get_bounding_box(img, bundle)
 
-    if bundle:
-        white_padding = np.zeros((white_key_height, white_key_width_strict, 3), dtype='uint8')
-    else:
-        white_padding = np.zeros((white_key_height, white_key_width_tolerence, 3), dtype='uint8')
-
-    box = white_boxes[0]
-    first_white_img = img[box[2]:box[3], 0:box[1], :].copy()
-    first_white_img = np.concatenate((white_padding, first_white_img), axis=1)
-    box = white_boxes[-1]
-    last_white_img = img[box[2]:box[3], box[0]:img_width, :].copy()
-    last_white_img = np.concatenate((last_white_img, white_padding), axis=1)
-    white_imgs = [first_white_img]
-    white_imgs += [
-        img[box[2]:box[3], box[0]:box[1], :].copy()
+    white_imgs = [
+        img[box[2]:box[3], max(0, box[0]):min(img_width, box[1]), :].copy()
         for box in white_boxes[1:-1]
     ]
-    white_imgs += [last_white_img]
-
-    # there is no padding needed for black_imgs
     black_imgs = [
-        img[box[2]:box[3], box[0]:box[1], :].copy()
-        for box in black_boxes
+        img[box[2]:box[3], max(0, box[0]):min(img_width, box[1]), :].copy()
+        for box in black_boxes[1:-1]
     ]
+    for img_array in (white_imgs, black_imgs):
+        if img_array[0].shape[1] < img_array[1].shape[1]:
+            pad_width = img_array[1].shape[1] - img_array[0].shape[1]
+            img_array[0] = np.pad(img_array[0], ((0, 0), (pad_width, 0), (0, 0)), mode='constant', constant_values=0)
+        if img_array[-1].shape[1] < img_array[-2].shape[1]:
+            pad_width = img_array[-2].shape[1] - img_array[-1].shape[1]
+            img_array[-1] = np.pad(img_array[-1], ((0, 0), (0, pad_width), (0, 0)), mode='constant', constant_values=0)
     return white_imgs, black_imgs
 
 
