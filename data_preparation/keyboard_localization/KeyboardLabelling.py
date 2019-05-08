@@ -7,17 +7,24 @@ import copy
 import os
 import sys
 import glob
+from tqdm import tqdm
+import warnings
 
-sys.path.append('..')
+# sys.path.append('..')
 
-import my_utils
-import dataset
+if len(sys.argv) > 1:
+  output_dir = sys.argv[1]
+else:
+  output_dir = 'output'
+
+# import my_utils
+# import dataset
 
 cur_point = (0, 0)
 lst_image = None
 ref_image = None
 
-dataset.init(os.path.join('..', '..', 'DataSet', 'Youtube'))
+# dataset.init(os.path.join('..', '..', 'DataSet', 'Youtube'))
 
 def click_and_choose(event, x, y, flags, param):
   global ref_image, lst_image, cur_point
@@ -56,8 +63,8 @@ def label(src_image):
       cur_stage += 1
       if cur_stage == 4:
         # standard piano keyboard size
-        width = 875
-        height = 105
+        width = 884
+        height = 106
         dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
         M = cv2.getPerspectiveTransform(pts, dst)
         transformed_image = cv2.warpPerspective(src_image, M, (width, height))
@@ -101,8 +108,16 @@ def label_photo_dir(path):
   print(files)
   sample = cv2.imread(files[0])
   pts = label(sample)
-  y = [pts] * len(files)
-  np.save('y', y)
+  print(pts)
 
-path = '../../models/keyboard-detection/dataset'
-label_photo_dir(path + '/X_test/6')
+warnings.warn("Please copy this script to the image folder (i.e. inside frame output folder)")
+files = glob.glob('*.jpg')
+pts = label(cv2.imread(files[20]))
+os.makedirs('output', exist_ok=True)
+width = 884
+height = 106
+dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+M = cv2.getPerspectiveTransform(pts, dst)
+for f in tqdm(files):
+  transformed_image = cv2.warpPerspective(cv2.imread(f), M, (width, height))
+  cv2.imwrite(f'{output_dir}/{f}', transformed_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
