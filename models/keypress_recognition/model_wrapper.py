@@ -17,7 +17,7 @@ black_mask = np.array(
      66, 69, 71, 73, 76, 78, 81, 83, 85])
 white_mask = np.array(
     [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
-     50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87, 88])
+     50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
 
 class ModelWrapper():
@@ -42,41 +42,79 @@ class ModelWrapper():
             self.model.to(device)
         print('done')
 
-    def evaluate(self, X):
+    def evaluate(self, X, threshold=None):
         '''
         please use NCHW format
         '''
         self.model.eval()
         with torch.no_grad():
-            inputs = torch.Tensor(X)
-            inputs = inputs.to(device)
-            outputs = self.model(inputs)
+            # inputs = torch.Tensor(X)
+            X.to(device)
+            outputs = self.model(X)
+            if threshold is not None:
+                sm_mask = outputs < threshold
+                lg_mask = outputs >= threshold
+                outputs[sm_mask] = 0
+                outputs[lg_mask] = 1
+                return outputs.type(torch.ByteTensor)
             return outputs
 
     def get_accuracy(self, X, y, threshold=0.5):
-        y_pred = self.evaluate(X)
-        mask = y_pred < threshold
-        y_pred[mask] = 0
-        y_pred[np.logical_not(mask)] = 1
-        if y.shape[1] == 88:
+        """
+        Returns a tuple of two values:
+        All-keyboard: ((w_precision, w_recall), (b_precision, b_recall))
+        Single-key:   ((precision, recall), )
+        """
+        y_pred = self.evaluate(X, threshold=0.5).cpu()
+        y = y.cpu().to(torch.uint8)
+        if len(y.shape) == 2:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
-            white_y = y[white_mask]
-            black_y = y[black_mask]
-            white_y_pred = y_pred[white_mask]
-            black_y_pred = y_pred[black_mask]
+            white_y = y[:, white_mask]
+            black_y = y[:, black_mask]
+            white_y_pred = y_pred[:, white_mask]
+            black_y_pred = y_pred[:, black_mask]
+
+            # (all 0), (pred=0, y=1)
+            # (pred=1, y=0), (all 1)
             for i in (0, 1):
                 for j in (0, 1):
-                    white_acc[i][j] = np.sum(np.logical_and(white_y_pred == i, white_y == j).astype('uint8'))
-                    black_acc[i][j] = np.sum(np.logical_and(black_y_pred == i, black_y == j).astype('uint8'))
-            return white_acc, black_acc
+                    white_acc[i][j] = torch.sum((white_y_pred == i) & (white_y == j)).tolist()
+                    black_acc[i][j] = torch.sum((black_y_pred == i) & (black_y == j)).tolist()
+
+            try:
+                white_precision = white_acc[1][1] / (white_acc[1][1] + white_acc[1][0])
+            except ZeroDivisionError:
+                white_precision = -1
+            try:
+                white_recall = white_acc[1][1] / (white_acc[1][1] + white_acc[0][1])
+            except ZeroDivisionError:
+                white_recall = -1
+            try:
+                black_precision = black_acc[1][1] / (black_acc[1][1] + black_acc[1][0])
+            except ZeroDivisionError:
+                black_precision = -1
+            try:
+                black_recall = black_acc[1][1] / (black_acc[1][1] + black_acc[0][1])
+            except ZeroDivisionError:
+                black_recall = -1
+            return ((white_precision, white_recall), (black_precision, black_recall))
 
         else:
             acc = [[None, None], [None, None]]
             for i in (0, 1):
                 for j in (0, 1):
-                    acc[i][j] = np.sum(np.logical_and(y_pred == i, y == j).astype('uint8'))
-            return acc
+                    acc[i][j] = torch.sum((y_pred == i) & (y == j)).tolist()
+
+            try:
+                precision = acc[1][1] / (acc[1][1] + acc[1][0])
+            except ZeroDivisionError:
+                precision = -1
+            try:
+                recall = acc[1][1] / (acc[1][1] + acc[0][1])
+            except ZeroDivisionError:
+                recall = -1
+            return ((precision, recall), )
 
     def train(
             self,
@@ -106,8 +144,6 @@ class ModelWrapper():
 
         best_model_wts = copy.deepcopy(model.state_dict())
         best_loss = None
-
-        print("Accuracy Matrix: both_0, pred_0_but_out_1, pred_1_but_out_0, both_1")
 
         for epoch in range(num_epochs):
 
@@ -148,17 +184,20 @@ class ModelWrapper():
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
+                    if torch.cuda.is_available():
+                        inputs = inputs.cuda()
+                        labels = labels.cuda()
+                    # inputs.to(device)
+                    # labels.to(device)
 
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
-
-                    print(inputs.shape)  # inputs[0] : CHW
-                    print(labels.shape)
+                    # print(inputs.shape)  # inputs[0] : CHW
+                    # print(labels.shape)
                     # zero the parameter gradients
                     optimizer.zero_grad()
 
                     # forward
                     outputs = model(inputs)
+                    outputs = torch.squeeze(outputs)
                     # if method == 2:
                     #     labels = torch.reshape(labels, [-1, 88])
                     # else:
@@ -187,8 +226,9 @@ class ModelWrapper():
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
                 self.model.eval()
-                acc_result = self.get_accuracy(inputs, labels)
-                print(acc_result)
+                for acc in self.get_accuracy(inputs, labels):
+                    print('Precision: %.2f' % acc[0])
+                    print('Recall   : %.2f' % acc[1])
                 self.model.train()
 
             # deep copy the model

@@ -14,8 +14,8 @@ from .separate import white_key_height, white_key_width, black_key_width, black_
 
 white_fc_in = (white_key_width // 2 // 2) * (white_key_height // 2 // 2) * 32
 black_fc_in = (black_key_width // 2 // 2) * (black_key_height // 2 // 2) * 32
-w_bundle_fc_in = (white_key_width_bundle // 2 // 2) * (white_key_height // 2 // 2) * 64
-b_bundle_fc_in = (black_key_width_bundle // 2 // 2) * (black_key_height // 2 // 2) * 64
+w_bundle_fc_in = (white_key_width_bundle // 2 // 2 // 2) * (white_key_height // 2 // 2 // 2) * 64
+b_bundle_fc_in = (black_key_width_bundle // 2 // 2 // 2) * (black_key_height // 2 // 2 // 2) * 64
 all_fc_in = (img_width // 2 // 2 // 2 // 2) * (img_height // 2 // 2 // 2 // 2) * 128
 
 
