@@ -67,7 +67,7 @@ class ModelWrapper():
         """
         y_pred = self.evaluate(X, threshold=0.5).cpu()
         y = y.cpu()
-        if y.shape[1] == 88:
+        if len(y.shape) == 2:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
             white_y = y[:, white_mask]
