@@ -173,7 +173,7 @@ class data_batch:
         if self.method == 2:
             return np.array(X_return), y_return
         else:
-            return white, black, y_return[:, white_mask], y_return[:, black_mask]
+            return white, black, y_return[:, white_mask].flatten(), y_return[:, black_mask].flatten()
 
 
 # load_all_data()
