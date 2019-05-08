@@ -161,9 +161,10 @@ class data_batch:
         else:
             X_return = np.array(
                 [cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'X_{self.type}'][start: end]])
+
         if self.NCHW and self.method == 2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
-        if self.NCHW and (self.method == 0 or self.method == 1):
+        elif self.NCHW and (self.method == 0 or self.method == 1):
             white = np.array(np.transpose(white, (0, 3, 1, 2)))
             black = np.array(np.transpose(black, (0, 3, 1, 2)))
         y_return = y[f'y_{self.type}'][start: end]

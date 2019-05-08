@@ -82,17 +82,22 @@ class ModelWrapper():
                     white_acc[i][j] = torch.sum((white_y_pred == i) & (white_y == j)).tolist()
                     black_acc[i][j] = torch.sum((black_y_pred == i) & (black_y == j)).tolist()
 
-            white_precision = -1
-            white_recall = -1
-            black_precision = -1
-            black_recall = -1
             try:
                 white_precision = white_acc[1][1] / (white_acc[1][1] + white_acc[1][0])
+            except ZeroDivisionError:
+                white_precision = -1
+            try:
                 white_recall = white_acc[1][1] / (white_acc[1][1] + white_acc[0][1])
+            except ZeroDivisionError:
+                white_recall = -1
+            try:
                 black_precision = black_acc[1][1] / (black_acc[1][1] + black_acc[1][0])
+            except ZeroDivisionError:
+                black_precision = -1
+            try:
                 black_recall = black_acc[1][1] / (black_acc[1][1] + black_acc[0][1])
             except ZeroDivisionError:
-                pass
+                black_recall = -1
             return ((white_precision, white_recall), (black_precision, black_recall))
 
         else:
@@ -101,8 +106,14 @@ class ModelWrapper():
                 for j in (0, 1):
                     acc[i][j] = torch.sum((y_pred == i) & (y == j)).tolist()
 
-            precision = acc[1][1] / (acc[1][1] + acc[1][0])
-            recall = acc[1][1] / (acc[1][1] + acc[0][1])
+            try:
+                precision = acc[1][1] / (acc[1][1] + acc[1][0])
+            except ZeroDivisionError:
+                precision = -1
+            try:
+                recall = acc[1][1] / (acc[1][1] + acc[0][1])
+            except ZeroDivisionError:
+                recall = -1
             return ((precision, recall), )
 
     def train(
@@ -186,6 +197,7 @@ class ModelWrapper():
 
                     # forward
                     outputs = model(inputs)
+                    outputs = torch.squeeze(outputs)
                     # if method == 2:
                     #     labels = torch.reshape(labels, [-1, 88])
                     # else:
