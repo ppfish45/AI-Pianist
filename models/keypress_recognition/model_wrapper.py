@@ -66,7 +66,7 @@ class ModelWrapper():
         Single-key:   ((precision, recall), )
         """
         y_pred = self.evaluate(X, threshold=0.5).cpu()
-        y = y.cpu()
+        y = y.cpu().to(torch.uint8)
         if len(y.shape) == 2:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
