@@ -67,18 +67,36 @@ class ModelWrapper():
             black_y = y[:, black_mask]
             white_y_pred = y_pred[:, white_mask]
             black_y_pred = y_pred[:, black_mask]
+
+            # (all 0), (pred=0, y=1)
+            # (pred=1, y=0), (all 1)
             for i in (0, 1):
                 for j in (0, 1):
                     white_acc[i][j] = torch.sum((white_y_pred == i) & (white_y == j)).tolist()
                     black_acc[i][j] = torch.sum((black_y_pred == i) & (black_y == j)).tolist()
-            return white_acc, black_acc
+
+            white_precision = -1
+            white_recall = -1
+            black_precision = -1
+            black_recall = -1
+            try:
+                white_precision = white_acc[1][1] / (white_acc[1][1] + white_acc[1][0])
+                white_recall = white_acc[1][1] / (white_acc[1][1] + white_acc[0][1])
+                black_precision = black_acc[1][1] / (black_acc[1][1] + black_acc[1][0])
+                black_recall = black_acc[1][1] / (black_acc[1][1] + black_acc[0][1])
+            except ZeroDivisionError:
+                pass
+            return ((white_precision, white_recall), (black_precision, black_recall))
 
         else:
             acc = [[None, None], [None, None]]
             for i in (0, 1):
                 for j in (0, 1):
                     acc[i][j] = torch.sum((y_pred == i) & (y == j)).tolist()
-            return acc
+
+            precision = acc[1][1] / (acc[1][1] + acc[1][0])
+            recall = acc[1][1] / (acc[1][1] + acc[0][1])
+            return ((precision, recall), )
 
     def train(
             self,
@@ -108,8 +126,6 @@ class ModelWrapper():
 
         best_model_wts = copy.deepcopy(model.state_dict())
         best_loss = None
-
-        print("Accuracy Matrix: both_0, pred_0_but_out_1, pred_1_but_out_0, both_1")
 
         for epoch in range(num_epochs):
 
@@ -191,8 +207,9 @@ class ModelWrapper():
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
                 self.model.eval()
-                acc_result = self.get_accuracy(inputs, labels)
-                print(acc_result)
+                for acc in self.get_accuracy(inputs, labels):
+                    print('Precision: %.2f' % acc[0])
+                    print('Recall   : %.2f' % acc[1])
                 self.model.train()
 
             # deep copy the model
