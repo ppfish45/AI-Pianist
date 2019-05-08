@@ -48,16 +48,17 @@ class ModelWrapper():
         '''
         self.model.eval()
         with torch.no_grad():
-            inputs = torch.Tensor(X)
-            inputs = inputs.to(device)
-            outputs = self.model(inputs)
+            # inputs = torch.Tensor(X)
+            X.to(device)
+            outputs = self.model(X)
             return outputs
 
     def get_accuracy(self, X, y, threshold=0.5):
-        y_pred = self.evaluate(X)
         mask = y_pred < threshold
         y_pred[mask] = 0
         y_pred[np.logical_not(mask)] = 1
+        y_pred = self.evaluate(X).cpu()
+        y = y.cpu()
         if y.shape[1] == 88:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
@@ -148,9 +149,11 @@ class ModelWrapper():
 
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
-
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
+                    if torch.cuda.is_available():
+                        inputs = inputs.cuda()
+                        labels = labels.cuda()
+                    # inputs.to(device)
+                    # labels.to(device)
 
                     print(inputs.shape)  # inputs[0] : CHW
                     print(labels.shape)
