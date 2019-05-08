@@ -1,18 +1,21 @@
 import os
+import warnings
 import cv2
-import glob
 import random
 import numpy as np
-from . import separate
+from keypress_recognition import separate
 
 path = {
-    'K_train': 'keypress_recognition/dataset/K_train',
-    'K_test': 'keypress_recognition/dataset/K_test',
-    'K_val': 'keypress_recognition/dataset/K_val',
-    'y_train': 'keypress_recognition/dataset/y_train',
-    'y_test': 'keypress_recognition/dataset/y_test',
-    'y_val': 'keypress_recognition/dataset/y_val'
+    'X_train': 'keypress_recognition/dataset/X_train',
+    'X_test': 'keypress_recognition/dataset/X_test',
+    'X_val': 'keypress_recognition/dataset/X_val',
+    'y_train': 'keypress_recognition/dataset/y_train/y_train.npy',
+    'y_test': 'keypress_recognition/dataset/y_test/y_test.npy',
+    'y_val': 'keypress_recognition/dataset/y_val/y_val.npy'
 }
+
+def is_jpg(fp):
+    return os.path.splitext(fp)[1] == '.jpg'
 
 X_path = dict()
 y = dict()
@@ -26,41 +29,32 @@ white_mask = np.array(
 
 
 # convert completed
-def load_all_data():
-    for name in path:
-        p = path[name]
-        if name[0] == 'K':
-            X_path[name] = []
-            # filter .DS_Store out
-            folders = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x))
-            folders = [os.path.join(p, x) for x in folders]
-            for f in folders:
-                fileList = glob.glob(os.path.join(f, '*.jpg'))
-                fileList = sorted(fileList, key=lambda x: int(x.split('/')[-1].split('.')[0]))
-                # print('Load ' + f + ' ...')
-                for file in fileList:
-                    X_path[name].append(file)
+def load_all_data(**kwargs):
+    for name, p in path.items():
+        if name[0] == 'X':
+            X_path[name] = [os.path.join(p, filepath) for filepath in os.listdir(p) if is_jpg(filepath)]
+            if len(X_path[name]) == 0:
+                warnings.warn(path[name] + " contains no image files (<number>.jpg). The corresponding data is set to empty list.")
         if name[0] == 'y':
-            y[name] = np.empty([0, 128])
-            # filter .DS_Store out
-            files = sorted([x for x in os.listdir(p) if x[0] != '.'], key=lambda x: int(x.split('.')[0]))
-            files = [os.path.join(p, x) for x in files]
-            for f in files:
-                # print('Load ' + f + ' ...')
-                # np.load(f) of size (total_frame, 128)
-                y[name] = np.concatenate((y[name], np.load(f)), axis=0)
+            if os.path.isfile(path[name]):
+                y[name] = np.load(path[name]) > 0
+            else:
+                y[name] = None
+                warnings.warn(path[name] + " not found. Setting corresponding data to None.")
 
-    # make sure X and y are perfectly aligned
-    assert len(X_path['K_train']) == y['y_train'].shape[0]
-    assert len(X_path['K_test']) == y['y_test'].shape[0]
-    assert len(X_path['K_val']) == y['y_val'].shape[0]
-
-    for _ in ['train', 'test', 'val']:
-        mask = np.arange(len(X_path[f'K_{_}']))
-        random.shuffle(mask)
-        X_path[f'K_{_}'] = np.array(X_path[f'K_{_}'])
-        X_path[f'K_{_}'] = X_path[f'K_{_}'][mask]
-        y[f'y_{_}'] = y[f'y_{_}'][mask]
+    # make sure X and y are perfectly aligned, and shuffle
+    for shit in ('train', 'val', 'test'):
+        yname = f'y_{shit}'
+        xname = f'X_{shit}'
+        X_path[xname] = np.array(X_path[xname])
+        if y[yname] is not None:
+            assert len(X_path[xname]) == y[yname].shape[0], f'In set {shit}: {len(X_path[xname])} and {y[yname].shape}[0] do not match'
+            mask = np.arange(len(X_path[xname]))
+            np.random.shuffle(mask)
+            if kwargs.get(shit) is not None:
+                mask = mask[:kwargs[shit]]
+                X_path[xname] = X_path[xname][mask]
+                y[yname] = y[yname][mask]
 
     for x in X_path:
         print('# of ' + x + ': ' + str(len(X_path[x])))
@@ -77,10 +71,15 @@ def get_sample(type='train', img=True, method=0):
         2 -- no separation
     :return: image, notes of size (88, )
     """
-    idx = random.randint(0, len(X_path[f'K_{type}']))  # random frame selection index
-    path = X_path[f'K_{type}'][idx]
-    notes = y[f'y_{type}'][idx]
-    notes = notes[20:108]
+    # random frame selection index
+    x_ = X_path[f'X_{type}']
+    y_ = y[f'y_{type}']
+    idx = random.randint(0, len(x_) - 1)  
+    path = x_[idx]
+    notes = y_[idx]
+
+    # preprocessing
+    notes = notes[21:109]
     if img:
         image = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB)
         if method == 0:
@@ -96,7 +95,7 @@ def get_sample(type='train', img=True, method=0):
 
 
 def get_num_of_data(type='train'):
-    return X_path[f'K_{type}'].shape[0]
+    return X_path[f'X_{type}'].shape[0]
 
 
 def show_corresponding_label(type='train', index=0):
@@ -150,26 +149,25 @@ class data_batch:
             black = np.empty((0, separate.black_key_height, separate.black_key_width_bundle, 3))
 
         if self.method == 0:
-            for x in X_path[f'K_{self.type}'][start: end]:
+            for x in X_path[f'X_{self.type}'][start: end]:
                 w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB))
                 white = np.concatenate((white, np.array(w)), axis=0)
                 black = np.concatenate((black, np.array(b)), axis=0)
         elif self.method == 1:
-            for x in X_path[f'K_{self.type}'][start: end]:
+            for x in X_path[f'X_{self.type}'][start: end]:
                 w, b = separate.separate(cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), bundle=True)
-                print(np.array(b).shape)
                 white = np.concatenate((white, np.array(w)), axis=0)
                 black = np.concatenate((black, np.array(b)), axis=0)
         else:
             X_return = np.array(
-                [cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'K_{self.type}'][start: end]])
+                [cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB) for x in X_path[f'X_{self.type}'][start: end]])
         if self.NCHW and self.method == 2:
             X_return = np.array(np.transpose(X_return, (0, 3, 1, 2)))  # convert to NCHW
         if self.NCHW and (self.method == 0 or self.method == 1):
             white = np.array(np.transpose(white, (0, 3, 1, 2)))
             black = np.array(np.transpose(black, (0, 3, 1, 2)))
         y_return = y[f'y_{self.type}'][start: end]
-        y_return = y_return[:, 20:108]
+        y_return = y_return[:, 21:109]
 
         self.index += 1
         if self.method == 2:
@@ -178,4 +176,4 @@ class data_batch:
             return white, black, y_return[:, white_mask], y_return[:, black_mask]
 
 
-load_all_data()
+# load_all_data()
