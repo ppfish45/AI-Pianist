@@ -20,6 +20,8 @@ def note_labelling(name):
         if re.search("frame", line) is not None:
             total_frame = int(line[6:11])
 
+    print(total_frame)
+
     mid = mido.MidiFile(re.sub("MP4", "mid", name))
     label = np.zeros((total_frame, 128))
     prev_frame = int(0)
