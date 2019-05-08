@@ -28,14 +28,14 @@ def note_labelling(name):
     
 
     for tracks in mid.tracks:
-        if (curr_frame > total_frame):
-            break
         for msg in tracks:
             timer += msg.time
             curr_time = mido.tick2second(timer, mid.ticks_per_beat, 500000.0)
             curr_frame = curr_time * rate
             curr_frame = round(curr_frame)
             prev_frame = round(prev_frame)
+            if (curr_frame >= total_frame):
+                break
             if (msg.type == "note_on"): 
                 label[prev_frame:(curr_frame+1), :] = label[prev_frame, :] 
                 label[curr_frame, msg.note] = msg.velocity
@@ -43,10 +43,13 @@ def note_labelling(name):
                 label[prev_frame:(curr_frame+1), :] = label[prev_frame, :] 
                 label[curr_frame, msg.note] = - msg.velocity
             prev_frame = curr_frame
+        if (curr_frame >= total_frame):
+            break
 
         
 
     np.save("./test_2.npy", label)
+    print(label.shape)
 
     fi.close()
 
