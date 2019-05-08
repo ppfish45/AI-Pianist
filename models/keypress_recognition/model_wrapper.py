@@ -54,29 +54,30 @@ class ModelWrapper():
             return outputs
 
     def get_accuracy(self, X, y, threshold=0.5):
-        mask = y_pred < threshold
-        y_pred[mask] = 0
-        y_pred[np.logical_not(mask)] = 1
         y_pred = self.evaluate(X).cpu()
         y = y.cpu()
+        sm_mask = y_pred < threshold
+        lg_mask = y_pred >= threshold
+        y_pred[sm_mask] = 0
+        y_pred[lg_mask] = 1
         if y.shape[1] == 88:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
-            white_y = y[white_mask]
-            black_y = y[black_mask]
-            white_y_pred = y_pred[white_mask]
-            black_y_pred = y_pred[black_mask]
+            white_y = y[:, white_mask]
+            black_y = y[:, black_mask]
+            white_y_pred = y_pred[:, white_mask]
+            black_y_pred = y_pred[:, black_mask]
             for i in (0, 1):
                 for j in (0, 1):
-                    white_acc[i][j] = np.sum(np.logical_and(white_y_pred == i, white_y == j).astype('uint8'))
-                    black_acc[i][j] = np.sum(np.logical_and(black_y_pred == i, black_y == j).astype('uint8'))
+                    white_acc[i][j] = torch.sum((white_y_pred == i) & (white_y == j)).tolist()
+                    black_acc[i][j] = torch.sum((black_y_pred == i) & (black_y == j)).tolist()
             return white_acc, black_acc
 
         else:
             acc = [[None, None], [None, None]]
             for i in (0, 1):
                 for j in (0, 1):
-                    acc[i][j] = np.sum(np.logical_and(y_pred == i, y == j).astype('uint8'))
+                    acc[i][j] = torch.sum((y_pred == i) & (y == j)).tolist()
             return acc
 
     def train(
