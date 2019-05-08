@@ -74,11 +74,11 @@ def separate(img, bundle=False):
 
     white_imgs = [
         img[box[2]:box[3], max(0, box[0]):min(img_width, box[1]), :].copy()
-        for box in white_boxes[1:-1]
+        for box in white_boxes
     ]
     black_imgs = [
         img[box[2]:box[3], max(0, box[0]):min(img_width, box[1]), :].copy()
-        for box in black_boxes[1:-1]
+        for box in black_boxes
     ]
     for img_array in (white_imgs, black_imgs):
         if img_array[0].shape[1] < img_array[1].shape[1]:
