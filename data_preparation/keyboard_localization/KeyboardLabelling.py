@@ -40,7 +40,7 @@ def label(src_image):
   ref_image = src_image.copy()
   lst_image = src_image.copy()
   cur_stage = 0
-  
+
   cv2.namedWindow('Labelling Window')
   cv2.setMouseCallback("Labelling Window", click_and_choose)
 
@@ -102,7 +102,7 @@ def label_video():
       y.append(np.array(pts))
     y = np.array(y)
     np.save(os.path.join('y_test', str(i - index + offset)), y)
-    
+
 def label_photo_dir(path):
   files = glob.glob(path + '/*.jpg')
   print(files)
