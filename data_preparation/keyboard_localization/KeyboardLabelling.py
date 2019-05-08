@@ -8,16 +8,16 @@ import os
 import sys
 import glob
 
-sys.path.append('..')
+# sys.path.append('..')
 
-import my_utils
-import dataset
+# import my_utils
+# import dataset
 
 cur_point = (0, 0)
 lst_image = None
 ref_image = None
 
-dataset.init(os.path.join('..', '..', 'DataSet', 'Youtube'))
+# dataset.init(os.path.join('..', '..', 'DataSet', 'Youtube'))
 
 def click_and_choose(event, x, y, flags, param):
   global ref_image, lst_image, cur_point
@@ -101,8 +101,15 @@ def label_photo_dir(path):
   print(files)
   sample = cv2.imread(files[0])
   pts = label(sample)
-  y = [pts] * len(files)
-  np.save('y', y)
+  print(pts)
 
-path = '../../models/keyboard-detection/dataset'
-label_photo_dir(path + '/X_test/6')
+files = glob.glob('*.jpg')
+pts = label(cv2.imread(files[0]))
+os.makedirs('output', exist_ok=True)
+for f in files:
+  width = 875
+  height = 105
+  dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+  M = cv2.getPerspectiveTransform(pts, dst)
+  transformed_image = cv2.warpPerspective(cv2.imread(f), M, (width, height))
+  cv2.imwrite(f'output/{f}', transformed_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
