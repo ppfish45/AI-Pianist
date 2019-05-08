@@ -7,8 +7,15 @@ import copy
 import os
 import sys
 import glob
+from tqdm import tqdm
+import warnings
 
 # sys.path.append('..')
+
+if len(sys.argv) > 1:
+  output_dir = sys.argv[1]
+else:
+  output_dir = 'output'
 
 # import my_utils
 # import dataset
@@ -33,7 +40,7 @@ def label(src_image):
   ref_image = src_image.copy()
   lst_image = src_image.copy()
   cur_stage = 0
-  
+
   cv2.namedWindow('Labelling Window')
   cv2.setMouseCallback("Labelling Window", click_and_choose)
 
@@ -56,8 +63,8 @@ def label(src_image):
       cur_stage += 1
       if cur_stage == 4:
         # standard piano keyboard size
-        width = 875
-        height = 105
+        width = 884
+        height = 106
         dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
         M = cv2.getPerspectiveTransform(pts, dst)
         transformed_image = cv2.warpPerspective(src_image, M, (width, height))
@@ -95,7 +102,7 @@ def label_video():
       y.append(np.array(pts))
     y = np.array(y)
     np.save(os.path.join('y_test', str(i - index + offset)), y)
-    
+
 def label_photo_dir(path):
   files = glob.glob(path + '/*.jpg')
   print(files)
@@ -103,13 +110,14 @@ def label_photo_dir(path):
   pts = label(sample)
   print(pts)
 
+warnings.warn("Please copy this script to the image folder (i.e. inside frame output folder)")
 files = glob.glob('*.jpg')
-pts = label(cv2.imread(files[0]))
+pts = label(cv2.imread(files[20]))
 os.makedirs('output', exist_ok=True)
-for f in files:
-  width = 875
-  height = 105
-  dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
-  M = cv2.getPerspectiveTransform(pts, dst)
+width = 884
+height = 106
+dst = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.float32)
+M = cv2.getPerspectiveTransform(pts, dst)
+for f in tqdm(files):
   transformed_image = cv2.warpPerspective(cv2.imread(f), M, (width, height))
-  cv2.imwrite(f'output/{f}', transformed_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+  cv2.imwrite(f'{output_dir}/{f}', transformed_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])

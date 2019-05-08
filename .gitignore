@@ -126,6 +126,7 @@ models/key_seperation/dataset/
 models.zip
 
 .idea
+*.pem
 
 models/keypress_recognition/dataset.zip
 data_preparation/new_dataset/
