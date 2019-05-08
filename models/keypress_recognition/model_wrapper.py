@@ -42,7 +42,7 @@ class ModelWrapper():
             self.model.to(device)
         print('done')
 
-    def evaluate(self, X):
+    def evaluate(self, X, threshold=None):
         '''
         please use NCHW format
         '''
@@ -51,15 +51,22 @@ class ModelWrapper():
             # inputs = torch.Tensor(X)
             X.to(device)
             outputs = self.model(X)
+            if threshold is not None:
+                sm_mask = outputs < threshold
+                lg_mask = outputs >= threshold
+                outputs[sm_mask] = 0
+                outputs[lg_mask] = 1
+                return outputs.type(torch.ByteTensor)
             return outputs
 
     def get_accuracy(self, X, y, threshold=0.5):
-        y_pred = self.evaluate(X).cpu()
+        """
+        Returns a tuple of two values:
+        All-keyboard: ((w_precision, w_recall), (b_precision, b_recall))
+        Single-key:   ((precision, recall), )
+        """
+        y_pred = self.evaluate(X, threshold=0.5).cpu()
         y = y.cpu()
-        sm_mask = y_pred < threshold
-        lg_mask = y_pred >= threshold
-        y_pred[sm_mask] = 0
-        y_pred[lg_mask] = 1
         if y.shape[1] == 88:
             white_acc = [[None, None], [None, None]]
             black_acc = [[None, None], [None, None]]
