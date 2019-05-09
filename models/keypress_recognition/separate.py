@@ -9,7 +9,7 @@ black_key_count = 36
 white_key_width_strict = 17 # 884 / 52
 white_key_width_tolerence = 2 # total 21
 black_key_width_strict = 12 # observed value
-black_key_width_tolerence = 1 # observed value, total 14
+black_key_width_tolerence = 2 # observed value, total 14
 ocvate_width_strict = white_key_width_strict * 7
 white_key_height = img_height
 black_key_height = img_height
@@ -22,7 +22,7 @@ white_key_width_bundle = 3 * white_key_width_strict  # 51
 black_key_width = black_key_width_tolerence * 2 + black_key_width_strict  # 14
 black_key_width_bundle = 3 * black_key_width_strict  # 24
 
-assert black_key_height == 106 and black_key_width == 14 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions "
+assert black_key_height == 106 and black_key_width == 16 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions "
 
 def record_black_here(left, tleft, tright):
     return (left - tleft, left + black_key_width_strict + tright, 0, black_key_height)
@@ -67,7 +67,7 @@ def get_bounding_box(img, bundle=False):
         cur += black_key_width_strict + black_spacing
         black_imgs.append(record_black_here(cur, bt, bt))
         cur += black_key_width_strict + black_spacing
-        if octave_count < 3 or bundle:
+        if octave_count < 4 or octave_count == 6 or bundle:
             black_imgs.append(record_black_here(cur, bt, bt))
         else:
             black_imgs.append(record_black_here(cur, bt*2, 0))
