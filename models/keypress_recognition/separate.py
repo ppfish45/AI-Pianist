@@ -113,7 +113,7 @@ def get_black_keys(img, expected_width=20):
             else:
                 coor[0] = x - offset
                 coor[1] = y + offset + 1
-    print(len(black_keys))
+    # print(len(black_keys))
     return black_keys
 
 
