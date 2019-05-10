@@ -9,13 +9,22 @@ import torch.nn as nn
 import torch.optim as optim
 
 from .model_wrapper import ModelWrapper
-from .separate import white_key_height, white_key_width, black_key_width, black_key_height, img_height, img_width, \
-    white_key_width_bundle, black_key_width_bundle
 
-white_fc_in = (white_key_width // 2 // 2) * (white_key_height // 2 // 2) * 32
-black_fc_in = (black_key_width // 2 // 2) * (black_key_height // 2 // 2) * 32
-w_bundle_fc_in = (white_key_width_bundle // 2 // 2 // 2) * (white_key_height // 2 // 2 // 2) * 64
-b_bundle_fc_in = (black_key_width_bundle // 2 // 2 // 2) * (black_key_height // 2 // 2 // 2) * 64
+single_paddings = 2
+bundle_paddings = 10
+white_single_width = 17 + 2 * single_paddings
+white_bundle_width = 17 + 2 * bundle_paddings
+black_single_width = 16 + 2 * single_paddings
+black_bundle_width = 16 + 2 * bundle_paddings
+img_width = 884
+img_height = 106
+white_key_height = img_height
+black_key_height = img_height
+
+white_fc_in = (white_single_width // 2 // 2) * (white_key_height // 2 // 2) * 32
+black_fc_in = (black_single_width // 2 // 2) * (black_key_height // 2 // 2) * 32
+w_bundle_fc_in = (white_bundle_width // 2 // 2 // 2) * (white_key_height // 2 // 2 // 2) * 64
+b_bundle_fc_in = (black_bundle_width // 2 // 2 // 2) * (black_key_height // 2 // 2 // 2) * 64
 all_fc_in = (img_width // 2 // 2 // 2 // 2) * (img_height // 2 // 2 // 2 // 2) * 128
 
 
