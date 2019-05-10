@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 
 img_width = 884
 img_height = 106
@@ -9,7 +10,7 @@ black_key_count = 36
 white_key_width_strict = 17 # 884 / 52
 white_key_width_tolerence = 2 # total 21
 black_key_width_strict = 12 # observed value
-black_key_width_tolerence = 2 # observed value, total 14
+black_key_width_tolerence = 2 # observed value
 ocvate_width_strict = white_key_width_strict * 7
 white_key_height = img_height
 black_key_height = img_height
@@ -19,13 +20,14 @@ black_spacing = 8 # total spacing is wider than 8*7 by 3
 white_key_width = white_key_width_tolerence * 2 + white_key_width_strict  # 21
 white_key_width_bundle = 3 * white_key_width_strict  # 51
 
-black_key_width = black_key_width_tolerence * 2 + black_key_width_strict  # 14
+black_key_width = black_key_width_tolerence * 2 + black_key_width_strict  # 16
 black_key_width_bundle = 3 * black_key_width_strict  # 24
 
 assert black_key_height == 106 and black_key_width == 16 and white_key_height == 106 and white_key_width == 21, "Incorrect calculation of key dimentions "
 
 def record_black_here(left, tleft, tright):
     return (left - tleft, left + black_key_width_strict + tright, 0, black_key_height)
+
 
 def get_bounding_box(img, bundle=False):
     """
@@ -75,6 +77,72 @@ def get_bounding_box(img, bundle=False):
     return white_imgs, black_imgs
 
 
+def get_black_keys(img, expected_width=20):
+    '''
+    want a RGB image, (h, w) format
+    return: a list of a tuple of (left, right, top, bottom) coordinates.
+    '''
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    blur = cv2.GaussianBlur(img, (5, 5), 0)
+    _, bw = cv2.threshold(blur, 127, 255, cv2.THRESH_OTSU)
+    upper = np.mean(bw[0:5], axis=0)
+    
+    black_keys = []
+
+    last = -1
+
+    for i, x in enumerate(upper):
+        if x <= 255 / 5:
+            if last == -1:
+                last = i
+        else:
+            if last != -1:
+                black_keys.append([last, i - 1, 0, black_key_height])
+                last = -1
+
+    for i, coor in enumerate(black_keys):
+        x, y, _, _ = coor
+        offset = (expected_width - (y - x)) // 2
+        if y - x + offset * 2 == expected_width:
+            coor[0] = x - offset
+            coor[1] = y + offset
+        else: # prevent //2 rounding from decreasing the size by 1
+            if i < 18:
+                coor[0] = x - offset - 1
+                coor[1] = y + offset
+            else:
+                coor[0] = x - offset
+                coor[1] = y + offset + 1
+    # print(len(black_keys))
+    return black_keys
+
+
+def get_bounding_box2(img, bundle=False):
+    """
+    img: An image file of a keyboard. The
+    images should be standardized, i.e. rectangular of size 106, 884
+
+    Get cropping bounding boxes of seperate keys and list out in this order: white keys
+    from lowest to highest, black keys from lowest to highest
+
+    return: A list of dimension 4 bounding boxes: left, right, up, down. Can be out of bound (etc. negative for first white key).
+    """
+    assert img.shape[1] == img_width and img.shape[0] == img_height, f"Image file {img.shape} not of size {img_height}, {img_width}"
+
+    wt = white_key_width_strict if bundle else white_key_width_tolerence
+    bt = black_key_width_strict if bundle else black_key_width_tolerence
+
+    white_imgs = [(i * white_key_width_strict - wt, (i + 1) * white_key_width_strict + wt, 0, img_height) for i in range(52)]
+    black_imgs = get_black_keys(img, expected_width=black_key_width)
+    # Always get bounding box of width black_strict+tolerence. Add bundle later to avoid interference in cv
+    if bundle:
+        diff = black_key_width_strict - black_key_width_tolerence
+        for coor in black_imgs:
+            coor[0] -= diff
+            coor[1] += diff
+    return white_imgs, black_imgs
+
+
 def separate(img, bundle=False):
     """
     img: An image file of a keyboard. The
@@ -108,7 +176,6 @@ def separate(img, bundle=False):
 
 
 if __name__ == "__main__":
-    import cv2
     import os
     import glob
     import numpy as np
