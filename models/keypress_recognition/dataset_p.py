@@ -233,6 +233,13 @@ class data_batch:
                 self.num_unpressed += 1
         if self.max_num == -1:
             self.max_num = len(self.unpressed)
+            self.iter_num = len(self.unpressed) * 2
+        else:
+            self.max_num = self.max_num // 2
+            self.iter_num = max_num
+        self.bar = IntProgress(max=self.iter_num)
+        self.bar.description = f'{self.iter_num}'
+        display(self.bar)
 
     def __iter__(self):
         self.index = 0
@@ -242,25 +249,29 @@ class data_batch:
         start = self.index * self.batch_size // 2
         end = (self.index + 1) * self.batch_size // 2
         if start >= self.max_num:
+            self.bar.close()
             raise StopIteration
         if end >= self.max_num:
             end = self.max_num
             start = end - self.batch_size // 2
-        ind = []
+        self.index += 1
+        ind = np.array([])
         s = start % self.num_pressed
         t = end % self.num_pressed
         if start // self.num_pressed == end // self.num_pressed:
-            ind.append(self.pressed[s:t])
+            ind = np.append(ind, np.array(self.pressed[s:t]))
         else:
-            ind.append(self.pressed[s:])
-            ind.append(self.pressed[:t])
-        ind.append(self.unpressed[start:end])
-        ind = np.array(ind).flatten()
+            ind = np.append(ind, np.array(self.pressed[s:]))
+            ind = np.append(ind, np.array(self.pressed[:t]))
+        ind = np.append(ind, np.array(self.unpressed[start:end]))
+        ind = ind.flatten().astype('int64')
         X_return = X[self.size][self.color][self.type][ind]
         if self.NCHW:
             X_return = np.transpose(X_return, (0, 3, 1, 2))
         y_return = y[self.color][self.type][ind]
         if not self.need_velocity:
             y_return = (y_return > 0).astype(np.int)
+        self.bar.value += self.batch_size
+        self.bar.description = f'{max(self.iter_num - self.index * self.batch_size, 0)}'
         return (X_return, y_return)
         
