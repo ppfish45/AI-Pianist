@@ -8,14 +8,26 @@ import matplotlib.pyplot as plt
 from ipywidgets import IntProgress
 from IPython.display import display
 
-path = {
-    'X_train': 'data/X_train',
-    'X_test': 'data/X_test',
-    'X_val': 'data/X_val',
-    'y_train': 'data/y_train',
-    'y_test': 'data/y_test',
-    'y_val': 'data/y_val',
-}
+if __name__ == "__main__":
+    path = {
+        'X_train': 'dataset/X_train',
+        'X_test': 'dataset/X_test',
+        'X_val': 'dataset/X_val',
+        'y_train': 'dataset/y_train',
+        'y_test': 'dataset/y_test',
+        'y_val': 'dataset/y_val',
+    }
+else:
+    path = {
+        'X_train': 'keypress_recognition/dataset/X_train',
+        'X_test': 'keypress_recognition/dataset/X_test',
+        'X_val': 'keypress_recognition/dataset/X_val',
+        'y_train': 'keypress_recognition/dataset/y_train',
+        'y_test': 'keypress_recognition/dataset/y_test',
+        'y_val': 'keypress_recognition/dataset/y_val',
+    }
+    
+
 
 X_path = dict()
 X_image = dict()
