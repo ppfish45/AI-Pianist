@@ -18,7 +18,6 @@ path = {
 }
 
 X_path = dict()
-X_image = dict()
 y_org = dict()
 
 X = {
@@ -39,8 +38,6 @@ y = {
 # X['single']['white']['train']
 # y['single']['white']['train']
 
-loaded = False
-
 black_mask = np.array(
     [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
      66, 69, 71, 73, 76, 78, 81, 83, 85])
@@ -48,8 +45,13 @@ white_mask = np.array(
     [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
      50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
-def load_all_data(spliter=['train', 'test', 'val'], to_memory=False, shuffle=False, flatten=True):
-    global loaded
+def load_all_data(
+    spliter=['train', 'test', 'val'],
+    color=['black', 'white'],
+    size=['single', 'bundle'],
+    shuffle=False,
+    keypress=True
+    ):
     for name in spliter:
         # X
         fp = os.path.join(path['X_' + name], '*.jpg')
@@ -67,34 +69,19 @@ def load_all_data(spliter=['train', 'test', 'val'], to_memory=False, shuffle=Fal
             random.shuffle(mask)
             X_path[name] = np.array(X_path[name])[mask]
             y_org[name] = y_org[name][mask]
-        # load to memory
-        if to_memory:
-            loaded = True
-            X_image[name] = []
-            bar = IntProgress(max=len(X_path[name]))
-            display(bar)
-            for p in X_path[name]:
-                img = cv2.imread(p)
-                X_image[name].append(img)
-                bar.value += 1
-            bar.close()
-        print(name + ' data loading finished ...')
-        print('')
-    seperate(spliter, flatten=flatten)
+    if keypress:
+        seperate(spliter, color, size)
 
-def get_white_keys(img, paddings=0):
+def get_white_keys(keys, img, mask, paddings=0):
     height, width, _ = img.shape # HWC
     unit_width = width // 52
     left = np.arange(52) * unit_width + paddings
     right = (np.arange(52) + 1) * unit_width + paddings
     # add paddings to original img
     padding = np.zeros([height, paddings, 3])
-    img = np.concatenate((padding, img, padding), axis=1)
-    keys = []
-    for i in range(52):
+    img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
+    for i in mask:
         keys.append(img[:, left[i] - paddings : right[i] + paddings, :])
-    keys = np.array(keys, dtype=np.uint8)
-    return keys
 
 def get_black_boundaries(img, expected_width=16):
     '''
@@ -126,23 +113,32 @@ def get_black_boundaries(img, expected_width=16):
     
     return np.array(black_keys)
 
-def get_black_keys(img, boundaries, paddings=0):
+def get_black_keys(keys, img, boundaries, mask, paddings=0):
     height, width, _ = img.shape # HWC
     left = boundaries[:, 0] + paddings
     right = boundaries[:, 1] + paddings
     # add paddings to original img
     padding = np.zeros([height, paddings, 3])
-    img = np.concatenate((padding, img, padding), axis=1)
-    keys = []
-    for i in range(36):
+    img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
+    for i in mask:
         keys.append(img[:, left[i] - paddings : right[i] + paddings + 1, :])
-    keys = np.array(keys, dtype=np.uint8)
-    return keys
 
-def seperate(spliter=['train', 'test', 'val'], flatten=True):
-    if not loaded:
-        print('Please make sure all images are loaded into momory. Use load_all_data(to_memory=True).')
-        return
+def get_masks(y_info, offset=2):
+    white_tmp_mask = []
+    black_tmp_mask = []
+    for i, x in enumerate(white_mask):
+        l = max(0, x - offset)
+        r = min(87, x + offset)
+        if np.max(y_info[l:r+1]) > 0:
+            white_tmp_mask.append(i)
+    for i, x in enumerate(black_mask):
+        l = max(0, x - offset)
+        r = min(87, x + offset)
+        if np.max(y_info[l:r+1]) > 0:
+            black_tmp_mask.append(i)
+    return (white_tmp_mask, black_tmp_mask)
+
+def seperate(spliter, color, size):
 
     single_paddings = 2
     bundle_paddings = 10
@@ -161,7 +157,8 @@ def seperate(spliter=['train', 'test', 'val'], flatten=True):
 
     for name in spliter:
         black_coor = None
-        for img in X_image[name]:
+        for p in X_path[name]:
+            img = cv2.imread(p)
             black_coor = get_black_boundaries(img)
             if len(black_coor) == 36:
                 break
@@ -172,33 +169,41 @@ def seperate(spliter=['train', 'test', 'val'], flatten=True):
         y['white'][name] = []
         y['black'][name] = []
 
-        bar = IntProgress(max=len(X_image[name]))
+        bar = IntProgress(max=len(X_path[name]))
         display(bar)
 
-        for i, img in enumerate(X_image[name]):
-            new_white_single = get_white_keys(img, paddings=single_paddings)
-            new_black_single = get_black_keys(img, black_coor, paddings=single_paddings)
-            new_white_bundle = get_white_keys(img, paddings=bundle_paddings)
-            new_black_bundle = get_black_keys(img, black_coor, paddings=bundle_paddings)
-            X['single']['white'][name].append(new_white_single)
-            X['single']['black'][name].append(new_black_single)
-            X['bundle']['white'][name].append(new_white_bundle)
-            X['bundle']['black'][name].append(new_black_bundle)
-            y['white'][name].append(y_org[name][i][white_mask])
-            y['black'][name].append(y_org[name][i][black_mask])
+        for i, p in enumerate(X_path[name]):
+            white_tmp_mask = None
+            black_tmp_mask = None
+            if random.random() > 0.005:
+                white_tmp_mask, black_tmp_mask = get_masks(y_org[name][i])
+            else:
+                white_tmp_mask = np.arange(52)
+                black_tmp_mask = np.arange(36)
+            img = cv2.imread(p)
+            if 'single' in size:
+                if 'white' in color:
+                    get_white_keys(X['single']['white'][name], img, white_tmp_mask, paddings=single_paddings)
+                if 'black' in color:
+                    get_black_keys(X['single']['black'][name], img, black_coor, black_tmp_mask, paddings=single_paddings)
+            if 'bundle' in size:
+                if 'white' in color:
+                    get_white_keys(X['bundle']['white'][name], img, white_tmp_mask, paddings=bundle_paddings)
+                if 'black' in color:
+                    get_black_keys(X['bundle']['black'][name], img, black_coor, black_tmp_mask, paddings=bundle_paddings)
+            for ind in white_mask[white_tmp_mask]:
+                y['white'][name].append(y_org[name][i][ind])
+            for ind in black_mask[black_tmp_mask]:
+                y['black'][name].append(y_org[name][i][ind])
             bar.value += 1
+            del img
         bar.close()
         
         print('In ' + name + 'set: ')
-        for kind in ['white', 'black']:
-            for k2 in ['single', 'bundle']:
+        for kind in color:
+            for k2 in size:
                 X[k2][kind][name] = np.array(X[k2][kind][name])
-                if flatten:
-                    shape = X[k2][kind][name].shape
-                    X[k2][kind][name] = X[k2][kind][name].reshape([-1, shape[-3], shape[-2], shape[-1]])
             y[kind][name] = np.array(y[kind][name])
-            if flatten:
-                y[kind][name] = y[kind][name].flatten()
             print('  # of pressed ' + kind + ' key: ' + str(np.sum(y[kind][name] > 0)))
             print('  # of unpressed ' + kind + ' key: ' + str(np.sum(y[kind][name] <= 0)))
     
@@ -238,7 +243,6 @@ class data_batch:
             self.max_num = self.max_num // 2
             self.iter_num = max_num
         self.bar = IntProgress(max=self.iter_num)
-        self.bar.description = f'{self.iter_num}'
         display(self.bar)
 
     def __iter__(self):
@@ -272,6 +276,5 @@ class data_batch:
         if not self.need_velocity:
             y_return = (y_return > 0).astype(np.int)
         self.bar.value += self.batch_size
-        self.bar.description = f'{max(self.iter_num - self.index * self.batch_size, 0)}'
         return (X_return, y_return)
         
