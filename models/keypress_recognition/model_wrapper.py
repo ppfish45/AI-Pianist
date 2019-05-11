@@ -6,6 +6,7 @@ import time
 import copy
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+import warnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 black_mask = np.array(
@@ -38,7 +39,7 @@ class ModelWrapper():
             self.model.to(device)
         print('done')
 
-    def evaluate(self, X, threshold=None):
+    def evaluate(self, X, threshold=0.5):
         '''
         please use NCHW format
         '''
@@ -75,10 +76,12 @@ class ModelWrapper():
         try:
             precision = acc[1,1] / (acc[1,1] + acc[1,0])
         except ZeroDivisionError:
+            warnings.warn('Unexpected ZeroDivisionError when calculating precision')
             precision = -1
         try:
             recall = acc[1,1] / (acc[1,1] + acc[0,1])
         except ZeroDivisionError:
+            warnings.warn('Unexpected ZeroDivisionError when calculating recall')
             recall = -1
         return precision, recall
 
@@ -102,7 +105,7 @@ class ModelWrapper():
         optimizer = self.optim(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
 
-        writer = SummaryWriter(f'{size}_{color}_{time.ctime().replace(" ", "_").replace(":", "_")}')
+        writer = SummaryWriter()
         since = time.time()
 
         best_model_wts = copy.deepcopy(model.state_dict())
