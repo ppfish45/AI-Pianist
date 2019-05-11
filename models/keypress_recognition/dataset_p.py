@@ -219,6 +219,9 @@ def seperate(spliter, color, size):
             print('  # of pressed ' + kind + ' key: ' + str(np.sum(y[kind][name] > 0)))
             print('  # of unpressed ' + kind + ' key: ' + str(np.sum(y[kind][name] <= 0)))
     
+def get_num_of_data(type, size, color):
+    return X[size][color][type].shape[0]
+
 class data_batch:
     def __init__(
         self,
