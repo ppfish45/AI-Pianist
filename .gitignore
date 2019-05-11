@@ -131,4 +131,10 @@ models.zip
 
 models/keypress_recognition/dataset.zip
 data_preparation/new_dataset/
-models/runs/
+
+X_test
+X_train
+X_val
+y_test
+y_train
+y_val

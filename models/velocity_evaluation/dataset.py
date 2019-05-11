@@ -94,6 +94,9 @@ white_mask = np.array(
     [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
      50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87])
 
+def get_lstm_data_num(phase, color):
+    return len(X_series[phase][color])
+
 def load_all_data(
     spliter=['train', 'test', 'val'],
     color=['black', 'white'],
@@ -116,14 +119,24 @@ def load_all_data(
     else:
         get_press_series(spliter, color)
 
-def get_white_keys(keys, img, mask, paddings=0, one_key=None):
+def pad_img(img, paddings):
     height, width, _ = img.shape # HWC
+    padding = np.zeros([height, paddings, 3])
+    _img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
+    del img
+    return _img
+
+def get_white_keys(keys, img, mask, paddings=0, one_key=None, need_pad=True):
+    height, width, _ = img.shape # HWC
+    if need_pad == False:
+        width -= 2 * paddings
     unit_width = width // 52
     left = np.arange(52) * unit_width + paddings
     right = (np.arange(52) + 1) * unit_width + paddings
     # add paddings to original img
-    padding = np.zeros([height, paddings, 3])
-    img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
+    if need_pad:
+        padding = np.zeros([height, paddings, 3])
+        img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
     if keys == None:
         return img[:, left[one_key] - paddings : right[one_key] + paddings, :]
     else:
@@ -160,15 +173,16 @@ def get_black_boundaries(img, expected_width=16):
     
     return np.array(black_keys)
 
-def get_black_keys(keys, img, boundaries, mask, paddings=0, one_key=None):
+def get_black_keys(keys, img, boundaries, mask, paddings=0, one_key=None, need_pad=True):
     height, width, _ = img.shape # HWC
     left = boundaries[:, 0] + paddings
     right = boundaries[:, 1] + paddings
     # add paddings to original img
-    padding = np.zeros([height, paddings, 3])
-    img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
+    if need_pad:
+        padding = np.zeros([height, paddings, 3])
+        img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
     if keys == None:
-        return img[:, left[one_key] - paddings : right[one_key] + paddings, :]
+        return img[:, left[one_key] - paddings : right[one_key] + paddings + 1, :]
     else:
         for i in mask:
             keys.append(img[:, left[i] - paddings : right[i] + paddings + 1, :])
@@ -188,6 +202,8 @@ def get_masks(y_info, offset=2):
             black_tmp_mask.append(i)
     return (white_tmp_mask, black_tmp_mask)
 
+tmp_imgs = []
+
 def add_series(spliter, color, start, end, key_index, paddings, black_coor=None):
     offset = 4
     N = y_org[spliter].shape[0]
@@ -199,16 +215,16 @@ def add_series(spliter, color, start, end, key_index, paddings, black_coor=None)
     y_return = y_org[spliter][start][key_index]
     X_return = []
     for i in range(max(0, start - offset), min(N, end + offset + 1)):
-        img = cv2.imread(X_path[spliter][i])
+        img = tmp_imgs[i]
         if color == 'black':
-            X_return.append(get_black_keys(None, img, black_coor, None, paddings, index))
+            X_return.append(get_black_keys(None, img, black_coor, None, paddings, index, need_pad=False))
         else:
-            X_return.append(get_white_keys(None, img, None, paddings, index))
-        del img
+            X_return.append(get_white_keys(None, img, None, paddings, index, need_pad=False))
     X_series[spliter][color].append(np.array(X_return))
     y_series[spliter][color].append(y_return)
 
 def get_press_series(spliter, color):
+    global tmp_imgs
     
     paddings = 4
     white_width = 17 + 2 * paddings
@@ -219,6 +235,8 @@ def get_press_series(spliter, color):
     print('Start extracting keypress series ...')
     print(f'  White width: {white_width}px')
     print(f'  Black width: {black_width}px')
+    print(f'  Height: {height}px')
+    print('')
 
     for name in spliter:
         black_coor = None
@@ -228,27 +246,54 @@ def get_press_series(spliter, color):
             black_coor = get_black_boundaries(img)
             if len(black_coor) == 36:
                 break
-        bar = IntProgress(max=88*N)
+        y_trans = np.transpose(y_org[name], (1, 0))
+        
+        print('Pre-loading images ...')
+        
+        bar = IntProgress(max=N)
         display(bar)
-        for k in range(88):
-            last = -1
-            for i in range(N):
-                if y_org[name][i][k] > 0:
-                    if last == -1:
-                        last = i
-                if y_org[name][i][k] <= 0 or i == N - 1:
-                    if last != -1:
-                        if k in black_mask:
-                            add_series(name, 'black', last, i - 1, k, paddings, black_coor)
-                        else:
-                            add_series(name, 'white', last, i - 1, k, paddings)
-                        last = -1
-                bar.value += 1
-                if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
-                    break
-            if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
-                break
+        for i in range(N):
+            img = pad_img(cv2.imread(X_path[name][i]), paddings)
+            tmp_imgs.append(img)
+            bar.value += 1
         bar.close()
+        
+        bar = IntProgress(max=88)
+        display(bar)
+
+        for k in range(88):
+            if k in black_mask:
+                col = 'black'
+            else:
+                col = 'white'
+            if col not in color:
+                continue
+            _y = y_trans[k]
+            _y = np.argwhere(_y > 0).flatten()
+            if _y.shape[0] == 0:
+                continue
+            last = _y[0]
+            _n = len(_y)
+            for i in range(_n):
+                bar.description = f'{i}/{_n}'
+                if _y[i] != _y[i - 1] + 1:
+                    if col == 'black':
+                        add_series(name, col, last, _y[i - 1], k, paddings, black_coor)
+                    else:
+                        add_series(name, col, last, _y[i - 1], k, paddings)
+                    last = _y[i]
+                if i == _n - 1:
+                    if col == 'black':
+                        add_series(name, col, last, _y[i], k, paddings, black_coor)
+                    else:
+                        add_series(name, col, last, _y[i], k, paddings)
+            bar.value += 1
+
+        bar.close()
+
+        del tmp_imgs
+        tmp_imgs = []
+
         print(f'{name} set loading finished ...')
         print('  Pressed white keys: ' + str(len(X_series[name]['white'])))
         print('  Pressed black keys: ' + str(len(X_series[name]['black'])))
@@ -329,11 +374,13 @@ class lstm_data_batch:
         color='white',
         NCHW=True,
         shuffle=True,
+        need_bar=True,
         max_num=-1
     ):
         self.type = type
         self.color = color
         self.NCHW = NCHW
+        self.need_bar = need_bar
         if max_num == -1:
             self.max_num = len(X_series[type][color])
         else:
@@ -341,8 +388,9 @@ class lstm_data_batch:
         self.order = np.arange(self.max_num)
         if shuffle:
             random.shuffle(self.order)
-        self.bar = IntProgress(max=self.max_num)
-        display(self.bar)
+        if need_bar:
+            self.bar = IntProgress(max=self.max_num)
+            display(self.bar)
 
     def __iter__(self):
         self.index = 0
@@ -350,6 +398,8 @@ class lstm_data_batch:
 
     def __next__(self):
         if self.index >= self.max_num:
+            if self.need_bar:
+                self.bar.close()
             raise StopIteration
         ind = self.order[self.index]
         X_return = X_series[self.type][self.color][ind]
@@ -357,8 +407,9 @@ class lstm_data_batch:
         if self.NCHW:
             X_return = np.transpose(X_return, (0, 3, 1, 2))
         self.index += 1
-        self.bar.value += 1
-        return (X_return, y_return)        
+        if self.need_bar:
+            self.bar.value += 1
+        return (np.array(X_return), np.array(y_return))        
 
 class data_batch:
     def __init__(
