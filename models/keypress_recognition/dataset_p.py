@@ -1,6 +1,7 @@
 import os
 import cv2
 import glob
+import copy
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,6 +41,27 @@ X = {
         'black': dict()
     }
 }
+X_pre = {
+    'single': {
+        'white': dict(),
+        'black': dict()
+    },
+    'bundle': {
+        'white': dict(),
+        'black': dict()
+    }
+}
+X_post = {
+    'single': {
+        'white': dict(),
+        'black': dict()
+    },
+    'bundle': {
+        'white': dict(),
+        'black': dict()
+    }
+}
+
 y = {
     'white': dict(),
     'black': dict()
@@ -88,7 +110,9 @@ def load_all_data(
     spliter=['train', 'test', 'val'],
     color=['black', 'white'],
     size=['single', 'bundle'],
-    keypress=True
+    keypress=True,
+    concatenate=False,
+    delta=1
     ):
     for name in spliter:
         # X
@@ -102,7 +126,7 @@ def load_all_data(
         # sanity check
         assert len(X_path[name]) == y_org[name].shape[0]
     if keypress:
-        seperate(spliter, color, size)
+        seperate(spliter, color, size, concatenate, delta)
     else:
         get_press_series(spliter, color)
 
@@ -161,7 +185,7 @@ def get_black_keys(keys, img, boundaries, mask, paddings=0, one_key=None):
         return img[:, left[one_key] - paddings : right[one_key] + paddings, :]
     else:
         for i in mask:
-            keys.append(img[:, left[i] - paddings : right[i] + paddings + 1, :])
+            keys.append(np.array(img[:, left[i] - paddings : right[i] + paddings + 1, :]))
 
 def get_masks(y_info, offset=2):
     white_tmp_mask = []
@@ -234,16 +258,12 @@ def get_press_series(spliter, color):
                             add_series(name, 'white', last, i - 1, k, paddings)
                         last = -1
                 bar.value += 1
-                if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
-                    break
-            if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
-                break
         bar.close()
         print(f'{name} set loading finished ...')
         print('  Pressed white keys: ' + str(len(X_series[name]['white'])))
         print('  Pressed black keys: ' + str(len(X_series[name]['black'])))
 
-def seperate(spliter, color, size):
+def seperate(spliter, color, size, concatenate=False, delta=3):
 
     single_paddings = 2
     bundle_paddings = 10
@@ -267,15 +287,26 @@ def seperate(spliter, color, size):
             black_coor = get_black_boundaries(img)
             if len(black_coor) == 36:
                 break
+
         X['single']['white'][name] = []
         X['single']['black'][name] = []
         X['bundle']['white'][name] = []
         X['bundle']['black'][name] = []
+        X_pre['single']['white'][name] = []
+        X_pre['single']['black'][name] = []
+        X_pre['bundle']['white'][name] = []
+        X_pre['bundle']['black'][name] = []
+        X_post['single']['white'][name] = []
+        X_post['single']['black'][name] = []
+        X_post['bundle']['white'][name] = []
+        X_post['bundle']['black'][name] = []
         y['white'][name] = []
         y['black'][name] = []
 
         bar = IntProgress(max=len(X_path[name]))
         display(bar)
+
+        N = len(X_path[name])
 
         for i, p in enumerate(X_path[name]):
             white_tmp_mask = None
@@ -296,18 +327,42 @@ def seperate(spliter, color, size):
                     get_white_keys(X['bundle']['white'][name], img, white_tmp_mask, paddings=bundle_paddings)
                 if 'black' in color:
                     get_black_keys(X['bundle']['black'][name], img, black_coor, black_tmp_mask, paddings=bundle_paddings)
+            if concatenate:
+                img_pre = cv2.imread(X_path[name][max(0, i - delta)])
+                img_post = cv2.imread(X_path[name][min(N - 1, i + delta)])
+                if 'single' in size:
+                    if 'white' in color:
+                        get_white_keys(X_pre['single']['white'][name], img_pre, white_tmp_mask, paddings=single_paddings)
+                        get_white_keys(X_post['single']['white'][name], img_post, white_tmp_mask, paddings=single_paddings)
+                    if 'black' in color:
+                        get_black_keys(X_pre['single']['black'][name], img_pre, black_coor, black_tmp_mask, paddings=single_paddings)
+                        get_black_keys(X_post['single']['black'][name], img_post, black_coor, black_tmp_mask, paddings=single_paddings)
+                if 'bundle' in size:
+                    if 'white' in color:
+                        get_white_keys(X_pre['bundle']['white'][name], img_pre, white_tmp_mask, paddings=bundle_paddings)
+                        get_white_keys(X_post['bundle']['white'][name], img_post, white_tmp_mask, paddings=bundle_paddings)
+                    if 'black' in color:
+                        get_black_keys(X_pre['bundle']['black'][name], img_pre, black_coor, black_tmp_mask, paddings=bundle_paddings)
+                        get_black_keys(X_post['bundle']['black'][name], img_post, black_coor, black_tmp_mask, paddings=bundle_paddings)
+                del img_pre
+                del img_post
+
             for ind in white_mask[white_tmp_mask]:
                 y['white'][name].append(y_org[name][i][ind])
             for ind in black_mask[black_tmp_mask]:
                 y['black'][name].append(y_org[name][i][ind])
             bar.value += 1
             del img
+
         bar.close()
         
         print('In ' + name + 'set: ')
         for kind in color:
             for k2 in size:
                 X[k2][kind][name] = np.array(X[k2][kind][name])
+                if concatenate:
+                    X_pre[k2][kind][name] = np.array(X_pre[k2][kind][name])
+                    X_post[k2][kind][name] = np.array(X_post[k2][kind][name])
             y[kind][name] = np.array(y[kind][name])
             print('  # of pressed ' + kind + ' key: ' + str(np.sum(y[kind][name] > 0)))
             print('  # of unpressed ' + kind + ' key: ' + str(np.sum(y[kind][name] <= 0)))
@@ -360,6 +415,7 @@ class data_batch:
         need_velocity=True,
         NCHW=True,
         shuffle=True,
+        concatenate=False,
         max_num=-1
     ):
         self.size = size
@@ -373,6 +429,7 @@ class data_batch:
         self.num_pressed = 0
         self.num_unpressed = 0
         self.need_velocity = need_velocity
+        self.concatenate = concatenate
         for i, x in enumerate(y[color][type]):
             if x > 0:
                 self.pressed.append(i)
@@ -417,6 +474,18 @@ class data_batch:
         ind = np.append(ind, np.array(self.unpressed[start:end]))
         ind = ind.flatten().astype('int64')
         X_return = X[self.size][self.color][self.type][ind]
+        if self.concatenate:
+            arr = X[self.size][self.color][self.type]
+            pre = X_pre[self.size][self.color][self.type]
+            post = X_post[self.size][self.color][self.type]
+            ret_pre = []
+            ret_post = []
+            for x in ind:
+                ret_pre.append(cv2.subtract(arr[x], pre[x]))
+                ret_post.append(cv2.subtract(post[x], arr[x]))
+            ret_pre = np.array(ret_pre)
+            ret_post = np.array(ret_post)
+            X_return = np.concatenate((ret_pre, X_return, ret_post), axis=3)
         if self.NCHW:
             X_return = np.transpose(X_return, (0, 3, 1, 2))
         y_return = y[self.color][self.type][ind]
