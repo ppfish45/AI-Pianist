@@ -85,9 +85,6 @@ class ModelWrapper():
             recall = -1
         try:
             general = (acc[1,1] + acc[0,0]) / np.sum(acc)
-        except ZeroDivisionError:
-            warnings.warn('Unexpected ZeroDivisionError when calculating general accuracy')
-            recall = -1
         return precision, recall, general
 
     def train(
