@@ -244,10 +244,14 @@ def get_press_series(spliter, color):
                             add_series(name, 'white', last, i - 1, k, paddings)
                         last = -1
                 bar.value += 1
+                if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
+                    break
+            if len(X_series[name]['white']) >= 2 and len(X_series[name]['black']) >= 2:
+                break
         bar.close()
         print(f'{name} set loading finished ...')
-        print('  Pressed white keys: ' + str({len(X_series[name]['white'])}))
-        print('  Pressed black keys: ' + str({len(X_series[name]['black'])}))
+        print('  Pressed white keys: ' + str(len(X_series[name]['white'])))
+        print('  Pressed black keys: ' + str(len(X_series[name]['black'])))
 
 def seperate(spliter, color, size):
 
@@ -330,9 +334,10 @@ class lstm_data_batch:
         self.type = type
         self.color = color
         self.NCHW = NCHW
-        self.max_num = max_num
-        if self.max_num == -1:
+        if max_num == -1:
             self.max_num = len(X_series[type][color])
+        else:
+            self.max_num = max_num
         self.order = np.arange(self.max_num)
         if shuffle:
             random.shuffle(self.order)
@@ -347,8 +352,8 @@ class lstm_data_batch:
         if self.index >= self.max_num:
             raise StopIteration
         ind = self.order[self.index]
-        X_return = X_series[type][color][ind]
-        y_return = y_series[type][color][ind]
+        X_return = X_series[self.type][self.color][ind]
+        y_return = y_series[self.type][self.color][ind]
         if self.NCHW:
             X_return = np.transpose(X_return, (0, 3, 1, 2))
         self.index += 1
