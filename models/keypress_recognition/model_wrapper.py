@@ -6,6 +6,7 @@ import time
 import copy
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+import warnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 black_mask = np.array(
@@ -38,7 +39,7 @@ class ModelWrapper():
             self.model.to(device)
         print('done')
 
-    def evaluate(self, X, threshold=None):
+    def evaluate(self, X, threshold=0.5):
         '''
         please use NCHW format
         '''
@@ -49,6 +50,7 @@ class ModelWrapper():
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X)
+            outputs = torch.squeeze(outputs)
             if threshold is not None:
                 sm_mask = outputs < threshold
                 lg_mask = outputs >= threshold
@@ -74,12 +76,19 @@ class ModelWrapper():
         try:
             precision = acc[1,1] / (acc[1,1] + acc[1,0])
         except ZeroDivisionError:
+            warnings.warn('Unexpected ZeroDivisionError when calculating precision')
             precision = -1
         try:
             recall = acc[1,1] / (acc[1,1] + acc[0,1])
         except ZeroDivisionError:
+            warnings.warn('Unexpected ZeroDivisionError when calculating recall')
             recall = -1
-        return precision, recall
+        try:
+            general = (acc[1,1] + acc[0,0]) / np.sum(acc)
+        except ZeroDivisionError:
+            warnings.warn('Unexpected ZeroDivisionError when calculating general accuracy')
+            recall = -1
+        return precision, recall, general
 
     def train(
             self,
@@ -101,7 +110,7 @@ class ModelWrapper():
         optimizer = self.optim(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
 
-        writer = SummaryWriter(f'{size}_{color}_{time.ctime().replace(" ", "_").replace(":", "_")}')
+        writer = SummaryWriter()
         since = time.time()
 
         best_model_wts = copy.deepcopy(model.state_dict())
@@ -111,6 +120,10 @@ class ModelWrapper():
 
             print('Epoch {}/{}'.format(epoch + 1, num_epochs))
 
+            loss_summary = {}
+            precision_summary = {}
+            recall_summary = {}
+            general_accuracy_summary = {}
             # Each epoch has a training and validation phase
             for phase in ['train', 'val']:
                 if phase == 'train':
@@ -161,16 +174,23 @@ class ModelWrapper():
                         torch.cuda.empty_cache()
 
                 epoch_loss = running_loss / dbatch.max_num
+                loss_summary[phase] = epoch_loss
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
 
-                precision, recall = self.evaluate_accuracy_matrix(accuracy_matrix)
+                print(accuracy_matrix)
+                precision, recall, general_acc = self.evaluate_accuracy_matrix(accuracy_matrix)
+                precision_summary[phase] = precision
+                recall_summary[phase] = recall
+                general_accuracy_summary[phase] = general_acc
                 print('Precision: %.2f' % precision)
                 print('Recall   : %.2f' % recall)
+                print('Accuracy : %.2f' % general_acc)
 
-                writer.add_scalar(f'{phase}_loss', epoch_loss, epoch)
-                writer.add_scalar(f'{phase}_accuracy/precision', precision)
-                writer.add_scalar(f'{phase}_accuracy/recall', recall)
+            writer.add_scalars('loss', loss_summary, epoch)
+            writer.add_scalars('precision', precision_summary, epoch)
+            writer.add_scalars('recall', recall_summary, epoch)
+            writer.add_scalars('accuracy', general_accuracy_summary, epoch)
 
             # deep copy the model
             if phase == 'val' and (best_loss == None or epoch_loss < best_loss):
