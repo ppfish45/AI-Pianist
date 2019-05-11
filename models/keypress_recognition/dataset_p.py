@@ -47,6 +47,21 @@ y = {
     'black': dict()
 }
 
+X_series = {
+    'train': {
+        'white': [],
+        'black': []
+    },
+    'test': {
+        'white': [],
+        'black': []
+    },
+    'val': {
+        'white': [],
+        'black': []
+    }
+}
+
 # X['single']['white']['train']
 # y['single']['white']['train']
 
@@ -83,8 +98,10 @@ def load_all_data(
             y_org[name] = y_org[name][mask]
     if keypress:
         seperate(spliter, color, size)
+    else:
+        get_press_series(spliter, color, size)
 
-def get_white_keys(keys, img, mask, paddings=0):
+def get_white_keys(keys, img, mask, paddings=0, one_key=None):
     height, width, _ = img.shape # HWC
     unit_width = width // 52
     left = np.arange(52) * unit_width + paddings
@@ -92,8 +109,11 @@ def get_white_keys(keys, img, mask, paddings=0):
     # add paddings to original img
     padding = np.zeros([height, paddings, 3])
     img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
-    for i in mask:
-        keys.append(img[:, left[i] - paddings : right[i] + paddings, :])
+    if keys is None:
+        
+    else:
+        for i in mask:
+            keys.append(img[:, left[i] - paddings : right[i] + paddings, :])
 
 def get_black_boundaries(img, expected_width=16):
     '''
@@ -125,7 +145,7 @@ def get_black_boundaries(img, expected_width=16):
     
     return np.array(black_keys)
 
-def get_black_keys(keys, img, boundaries, mask, paddings=0):
+def get_black_keys(keys, img, boundaries, mask, paddings=0, one_key=None):
     height, width, _ = img.shape # HWC
     left = boundaries[:, 0] + paddings
     right = boundaries[:, 1] + paddings
@@ -149,6 +169,46 @@ def get_masks(y_info, offset=2):
         if np.max(y_info[l:r+1]) > 0:
             black_tmp_mask.append(i)
     return (white_tmp_mask, black_tmp_mask)
+
+def add_series(spliter, color, start, end, key_index):
+    offset = 4
+    y_return = y_org[spliter][start][key_index]
+    X_return = []
+    
+
+def get_press_series(spliter, color):
+    
+    paddings = 4
+    white_width = 17 + 2 * paddings
+    black_width = 16 + 2 * paddings
+    height = 106
+    width = 884
+
+    print('Start extracting keypress series ...')
+    print(f'  White width: {white_width}px')
+    print(f'  Black width: {black_width}px')
+
+    for name in spliter:
+        black_coor = None
+        for p in X_path[name]:
+            img = cv2.imread(p)
+            black_coor = get_black_boundaries(img)
+            if len(black_coor) == 36:
+                break
+        for k in range(88):
+            last = -1
+            N = y_org[name].shape[0]  
+            for i in range(N):
+                if y_org[name][i][k] > 0:
+                    if last == -1:
+                        last = i
+                if y_org[name][i][k] <= 0 or i == N - 1:
+                    if last != -1:
+                        if k in black_mask:
+                            add_series(name, 'black', last, i - 1, k)
+                        else:
+                            add_series(name, 'white', last, i - 1, k)
+
 
 def seperate(spliter, color, size):
 
