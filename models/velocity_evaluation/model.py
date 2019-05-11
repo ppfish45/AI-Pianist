@@ -9,6 +9,11 @@ import copy
 from ipywidgets import IntProgress
 from IPython.display import display
 
+import dataset
+
+def load_data(spliter=['train', 'val'], color=['black']):
+    dataset.load_all_data(spliter, color, keypress=False)
+
 class Flatten(torch.nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
@@ -22,7 +27,8 @@ class cnn_lstm(nn.Module):
         hidden_dim,
         num_layers,
         cnn=None
-    ):
+    ): 
+        super(cnn_lstm, self).__init__()
         self.hidden_dim = hidden_dim
         self.feature_dim = feature_dim
         self.lstm = nn.LSTM(feature_dim, hidden_dim, num_layers=num_layers)
@@ -49,11 +55,12 @@ class cnn_lstm(nn.Module):
             self.cnn = cnn
             
     def forward(self, img_series):
-        N = img_series[0]
+        N = img_series.shape[0]
         cnn_out = self.cnn(img_series)
+        tanh = nn.Tanh()
         lstm_out, _ = self.lstm(cnn_out.view(N, 1, -1))
         logits = self.hidden2logits(lstm_out[1, 0, :])
-        result = (nn.Tanh(logits) + 1) * 127.5
+        result = (tanh(logits) + 1) * 127.5
         return result
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -85,6 +92,7 @@ class velocity_model():
 
     def train(
         self,
+        color='black',
         learning_rate=1e-3,
         num_epoch=5,
         max_num=-1,
@@ -111,13 +119,13 @@ class velocity_model():
                     model.eval()
                 
                 running_loss = 0.0
-                total = dataset.get_num_of_data(phase) if max_num == -1 else max_num
+                total = dataset.get_lstm_data_num(phase, color) if max_num == -1 else max_num
                 
                 bar = IntProgress(max=total)
                 display(bar)
 
-                for inputs, labels in dataset.lstm_ (type=phase, max_num=total):
-                    
+                for inputs, labels in dataset.lstm_data_batch(type=phase, color=color, max_num=total, need_bar=False):
+
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
                     inputs = inputs.to(device)
