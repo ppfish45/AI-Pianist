@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 from ipywidgets import IntProgress
 from IPython.display import display
 
-if os.getcwd().endswith("models"):
+if __name__ == "__main__":
     path = {
-        'X_train': 'keypress_recognition/dataset/X_train',
-        'X_test': 'keypress_recognition/dataset/X_test',
-        'X_val': 'keypress_recognition/dataset/X_val',
-        'y_train': 'keypress_recognition/dataset/y_train',
-        'y_test': 'keypress_recognition/dataset/y_test',
-        'y_val': 'keypress_recognition/dataset/y_val',
+        'X_train': 'dataset/X_train',
+        'X_test': 'dataset/X_test',
+        'X_val': 'dataset/X_val',
+        'y_train': 'dataset/y_train',
+        'y_test': 'dataset/y_test',
+        'y_val': 'dataset/y_val',
     }
 else:
     path = {
@@ -26,9 +26,17 @@ else:
         'y_test': 'dataset/y_test',
         'y_val': 'dataset/y_val',
     }
+    '''
+    path = {
+        'X_train': 'keypress_recognition/dataset/X_train',
+        'X_test': 'keypress_recognition/dataset/X_test',
+        'X_val': 'keypress_recognition/dataset/X_val',
+        'y_train': 'keypress_recognition/dataset/y_train',
+        'y_test': 'keypress_recognition/dataset/y_test',
+        'y_val': 'keypress_recognition/dataset/y_val',
+    }
+    '''
     
-
-
 X_path = dict()
 y_org = dict()
 
@@ -61,6 +69,20 @@ X_series = {
         'black': []
     }
 }
+y_series = {
+    'train': {
+        'white': [],
+        'black': []
+    },
+    'test': {
+        'white': [],
+        'black': []
+    },
+    'val': {
+        'white': [],
+        'black': []
+    }
+}
 
 # X['single']['white']['train']
 # y['single']['white']['train']
@@ -76,7 +98,6 @@ def load_all_data(
     spliter=['train', 'test', 'val'],
     color=['black', 'white'],
     size=['single', 'bundle'],
-    shuffle=False,
     keypress=True
     ):
     for name in spliter:
@@ -90,16 +111,10 @@ def load_all_data(
         y_org[name] = y_org[name][:, 21:109]
         # sanity check
         assert len(X_path[name]) == y_org[name].shape[0]
-        # shuffle
-        if shuffle:
-            mask = np.arange(y_org[name].shape[0])
-            random.shuffle(mask)
-            X_path[name] = np.array(X_path[name])[mask]
-            y_org[name] = y_org[name][mask]
     if keypress:
         seperate(spliter, color, size)
     else:
-        get_press_series(spliter, color, size)
+        get_press_series(spliter, color)
 
 def get_white_keys(keys, img, mask, paddings=0, one_key=None):
     height, width, _ = img.shape # HWC
@@ -109,8 +124,8 @@ def get_white_keys(keys, img, mask, paddings=0, one_key=None):
     # add paddings to original img
     padding = np.zeros([height, paddings, 3])
     img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
-    if keys is None:
-        
+    if keys == None:
+        return img[:, left[one_key] - paddings : right[one_key] + paddings, :]
     else:
         for i in mask:
             keys.append(img[:, left[i] - paddings : right[i] + paddings, :])
@@ -152,8 +167,11 @@ def get_black_keys(keys, img, boundaries, mask, paddings=0, one_key=None):
     # add paddings to original img
     padding = np.zeros([height, paddings, 3])
     img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
-    for i in mask:
-        keys.append(img[:, left[i] - paddings : right[i] + paddings + 1, :])
+    if keys == None:
+        return img[:, left[one_key] - paddings : right[one_key] + paddings, :]
+    else:
+        for i in mask:
+            keys.append(img[:, left[i] - paddings : right[i] + paddings + 1, :])
 
 def get_masks(y_info, offset=2):
     white_tmp_mask = []
@@ -170,11 +188,25 @@ def get_masks(y_info, offset=2):
             black_tmp_mask.append(i)
     return (white_tmp_mask, black_tmp_mask)
 
-def add_series(spliter, color, start, end, key_index):
+def add_series(spliter, color, start, end, key_index, paddings, black_coor=None):
     offset = 4
+    N = y_org[spliter].shape[0]
+    index = None
+    if color == 'black':
+        index = np.where(black_mask == key_index)[0][0]
+    else:
+        index = np.where(white_mask == key_index)[0][0]
     y_return = y_org[spliter][start][key_index]
     X_return = []
-    
+    for i in range(max(0, start - offset), min(N, end + offset + 1)):
+        img = cv2.imread(X_path[spliter][i])
+        if color == 'black':
+            X_return.append(get_black_keys(None, img, black_coor, None, paddings, index))
+        else:
+            X_return.append(get_white_keys(None, img, None, paddings, index))
+        del img
+    X_series[spliter][color].append(np.array(X_return))
+    y_series[spliter][color].append(y_return)
 
 def get_press_series(spliter, color):
     
@@ -190,14 +222,16 @@ def get_press_series(spliter, color):
 
     for name in spliter:
         black_coor = None
+        N = y_org[name].shape[0]
         for p in X_path[name]:
             img = cv2.imread(p)
             black_coor = get_black_boundaries(img)
             if len(black_coor) == 36:
                 break
+        bar = IntProgress(max=88*N)
+        display(bar)
         for k in range(88):
             last = -1
-            N = y_org[name].shape[0]  
             for i in range(N):
                 if y_org[name][i][k] > 0:
                     if last == -1:
@@ -205,10 +239,15 @@ def get_press_series(spliter, color):
                 if y_org[name][i][k] <= 0 or i == N - 1:
                     if last != -1:
                         if k in black_mask:
-                            add_series(name, 'black', last, i - 1, k)
+                            add_series(name, 'black', last, i - 1, k, paddings, black_coor)
                         else:
-                            add_series(name, 'white', last, i - 1, k)
-
+                            add_series(name, 'white', last, i - 1, k, paddings)
+                        last = -1
+                bar.value += 1
+        bar.close()
+        print(f'{name} set loading finished ...')
+        print('  Pressed white keys: ' + str({len(X_series[name]['white'])}))
+        print('  Pressed black keys: ' + str({len(X_series[name]['black'])}))
 
 def seperate(spliter, color, size):
 
@@ -278,9 +317,43 @@ def seperate(spliter, color, size):
             y[kind][name] = np.array(y[kind][name])
             print('  # of pressed ' + kind + ' key: ' + str(np.sum(y[kind][name] > 0)))
             print('  # of unpressed ' + kind + ' key: ' + str(np.sum(y[kind][name] <= 0)))
-    
-def get_num_of_data(type, size, color):
-    return X[size][color][type].shape[0]
+
+class lstm_data_batch:
+    def __init__(
+        self,
+        type='train',
+        color='white',
+        NCHW=True,
+        shuffle=True,
+        max_num=-1
+    ):
+        self.type = type
+        self.color = color
+        self.NCHW = NCHW
+        self.max_num = max_num
+        if self.max_num == -1:
+            self.max_num = len(X_series[type][color])
+        self.order = np.arange(self.max_num)
+        if shuffle:
+            random.shuffle(self.order)
+        self.bar = IntProgress(max=self.max_num)
+        display(self.bar)
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index >= self.max_num:
+            raise StopIteration
+        ind = self.order[self.index]
+        X_return = X_series[type][color][ind]
+        y_return = y_series[type][color][ind]
+        if self.NCHW:
+            X_return = np.transpose(X_return, (0, 3, 1, 2))
+        self.index += 1
+        self.bar.value += 1
+        return (X_return, y_return)        
 
 class data_batch:
     def __init__(
@@ -291,6 +364,7 @@ class data_batch:
         batch_size=64,
         need_velocity=True,
         NCHW=True,
+        shuffle=True,
         max_num=-1
     ):
         self.size = size
@@ -311,6 +385,9 @@ class data_batch:
             else:
                 self.unpressed.append(i)
                 self.num_unpressed += 1
+        if shuffle:
+            random.shuffle(self.pressed)
+            random.shuffle(self.unpressed)
         if self.max_num == -1:
             self.max_num = len(self.unpressed)
             self.iter_num = len(self.unpressed) * 2
@@ -352,4 +429,3 @@ class data_batch:
             y_return = (y_return > 0).astype(np.int)
         self.bar.value += self.batch_size
         return (X_return, y_return)
-        
