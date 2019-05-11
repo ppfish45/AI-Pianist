@@ -96,6 +96,7 @@ class ModelWrapper():
             size='single',
             color='white',
             batch_size=64,
+            concatenate=True,
             learning_rate=1e-3,
             num_epochs=5,
             max_num=-1,
@@ -137,6 +138,7 @@ class ModelWrapper():
                 max_num_for_this_epoch = max_num if phase == 'train' else -1
                 dbatch = dataset.data_batch(type=phase, size=size, color=color, 
                                             batch_size=batch_size,
+                                            concatenate=concatenate,
                                             need_velocity=False,
                                             NCHW=True,
                                             max_num=max_num_for_this_epoch)
