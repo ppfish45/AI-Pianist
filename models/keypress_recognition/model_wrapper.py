@@ -49,6 +49,7 @@ class ModelWrapper():
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X)
+            outputs = torch.squeeze(outputs)
             if threshold is not None:
                 sm_mask = outputs < threshold
                 lg_mask = outputs >= threshold
