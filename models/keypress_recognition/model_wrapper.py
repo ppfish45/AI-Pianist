@@ -5,6 +5,7 @@ import torch.optim as optim
 import time
 import copy
 import numpy as np
+from torch.utils.tensorboard import SummaryWriter
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 black_mask = np.array(
@@ -41,10 +42,12 @@ class ModelWrapper():
         '''
         please use NCHW format
         '''
+        if not isinstance(X, torch.Tensor):
+            X = torch.Tensor(X)
+            if torch.cuda.is_available():
+                X = X.cuda()
         self.model.eval()
         with torch.no_grad():
-            # inputs = torch.Tensor(X)
-            X.to(device)
             outputs = self.model(X)
             if threshold is not None:
                 sm_mask = outputs < threshold
@@ -54,62 +57,29 @@ class ModelWrapper():
                 return outputs.type(torch.ByteTensor)
             return outputs
 
-    def get_accuracy(self, X, y, threshold=0.5):
+    def get_accuracy_matrix(self, X, y, threshold=0.5):
         """
-        Returns a tuple of two values:
-        All-keyboard: ((w_precision, w_recall), (b_precision, b_recall))
-        Single-key:   ((precision, recall), )
+        Returns a 2*2 matrix of two values:
         """
         y_pred = self.evaluate(X, threshold=0.5).cpu()
         y = y.cpu().to(torch.uint8)
-        if len(y.shape) == 2:
-            white_acc = [[None, None], [None, None]]
-            black_acc = [[None, None], [None, None]]
-            white_y = y[:, white_mask]
-            black_y = y[:, black_mask]
-            white_y_pred = y_pred[:, white_mask]
-            black_y_pred = y_pred[:, black_mask]
+        acc = np.empty((2, 2), dtype=int)
+        for i in (0, 1):
+            for j in (0, 1):
+                acc[i,j] = torch.sum((y_pred == i) & (y == j)).tolist()
+        return acc
 
-            # (all 0), (pred=0, y=1)
-            # (pred=1, y=0), (all 1)
-            for i in (0, 1):
-                for j in (0, 1):
-                    white_acc[i][j] = torch.sum((white_y_pred == i) & (white_y == j)).tolist()
-                    black_acc[i][j] = torch.sum((black_y_pred == i) & (black_y == j)).tolist()
-
-            try:
-                white_precision = white_acc[1][1] / (white_acc[1][1] + white_acc[1][0])
-            except ZeroDivisionError:
-                white_precision = -1
-            try:
-                white_recall = white_acc[1][1] / (white_acc[1][1] + white_acc[0][1])
-            except ZeroDivisionError:
-                white_recall = -1
-            try:
-                black_precision = black_acc[1][1] / (black_acc[1][1] + black_acc[1][0])
-            except ZeroDivisionError:
-                black_precision = -1
-            try:
-                black_recall = black_acc[1][1] / (black_acc[1][1] + black_acc[0][1])
-            except ZeroDivisionError:
-                black_recall = -1
-            return ((white_precision, white_recall), (black_precision, black_recall))
-
-        else:
-            acc = [[None, None], [None, None]]
-            for i in (0, 1):
-                for j in (0, 1):
-                    acc[i][j] = torch.sum((y_pred == i) & (y == j)).tolist()
-
-            try:
-                precision = acc[1][1] / (acc[1][1] + acc[1][0])
-            except ZeroDivisionError:
-                precision = -1
-            try:
-                recall = acc[1][1] / (acc[1][1] + acc[0][1])
-            except ZeroDivisionError:
-                recall = -1
-            return ((precision, recall), )
+    @staticmethod
+    def evaluate_accuracy_matrix(acc):
+        try:
+            precision = acc[1,1] / (acc[1,1] + acc[1,0])
+        except ZeroDivisionError:
+            precision = -1
+        try:
+            recall = acc[1,1] / (acc[1,1] + acc[0,1])
+        except ZeroDivisionError:
+            recall = -1
+        return precision, recall
 
     def train(
             self,
@@ -131,6 +101,7 @@ class ModelWrapper():
         optimizer = self.optim(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
 
+        writer = SummaryWriter(f'{size}_{color}_{time.ctime().replace(" ", "_").replace(":", "_")}')
         since = time.time()
 
         best_model_wts = copy.deepcopy(model.state_dict())
@@ -149,6 +120,7 @@ class ModelWrapper():
                     model.eval()  # Set model to evaluate mode
 
                 running_loss = 0.0
+                accuracy_matrix = np.zeros((2, 2), dtype=int)
                 max_num_for_this_epoch = max_num if phase == 'train' else -1
                 dbatch = dataset.data_batch(type=phase, size=size, color=color, 
                                             batch_size=batch_size,
@@ -162,11 +134,7 @@ class ModelWrapper():
                     if torch.cuda.is_available():
                         inputs = inputs.cuda()
                         labels = labels.cuda()
-                    # inputs.to(device)
-                    # labels.to(device)
 
-                    # print(inputs.shape)  # inputs[0] : CHW
-                    # print(labels.shape)
                     # zero the parameter gradients
                     optimizer.zero_grad()
 
@@ -182,20 +150,27 @@ class ModelWrapper():
 
                     # statistics
                     running_loss += loss.item() * batch_size
+                    accuracy_matrix += self.get_accuracy_matrix(inputs, labels)
+                    if phase == 'train':
+                        model.train()  # Set model to training mode
+                    else:
+                        model.eval()  # Set model to evaluate mode
 
                     # free unoccupied memory
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
 
                 epoch_loss = running_loss / dbatch.max_num
-
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
-                self.model.eval()
-                for acc in self.get_accuracy(inputs, labels):
-                    print('Precision: %.2f' % acc[0])
-                    print('Recall   : %.2f' % acc[1])
-                self.model.train()
+
+                precision, recall = self.evaluate_accuracy_matrix(accuracy_matrix)
+                print('Precision: %.2f' % precision)
+                print('Recall   : %.2f' % recall)
+
+                writer.add_scalar(f'{phase}_loss', epoch_loss, epoch)
+                writer.add_scalar(f'{phase}_accuracy/precision', precision)
+                writer.add_scalar(f'{phase}_accuracy/recall', recall)
 
             # deep copy the model
             if phase == 'val' and (best_loss == None or epoch_loss < best_loss):
