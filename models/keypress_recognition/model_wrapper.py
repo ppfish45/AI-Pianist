@@ -83,7 +83,9 @@ class ModelWrapper():
         except ZeroDivisionError:
             warnings.warn('Unexpected ZeroDivisionError when calculating recall')
             recall = -1
-        return precision, recall
+        try:
+            general = (acc[1,1] + acc[0,0]) / np.sum(acc)
+        return precision, recall, general
 
     def train(
             self,
@@ -115,6 +117,10 @@ class ModelWrapper():
 
             print('Epoch {}/{}'.format(epoch + 1, num_epochs))
 
+            loss_summary = {}
+            precision_summary = {}
+            recall_summary = {}
+            general_accuracy_summary = {}
             # Each epoch has a training and validation phase
             for phase in ['train', 'val']:
                 if phase == 'train':
@@ -165,16 +171,23 @@ class ModelWrapper():
                         torch.cuda.empty_cache()
 
                 epoch_loss = running_loss / dbatch.max_num
+                loss_summary[phase] = epoch_loss
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
 
-                precision, recall = self.evaluate_accuracy_matrix(accuracy_matrix)
+                print(accuracy_matrix)
+                precision, recall, general_acc = self.evaluate_accuracy_matrix(accuracy_matrix)
+                precision_summary[phase] = precision
+                recall_summary[phase] = recall
+                general_accuracy_summary[phase] = general_acc
                 print('Precision: %.2f' % precision)
                 print('Recall   : %.2f' % recall)
+                print('Accuracy : %.2f' % general_acc)
 
-                writer.add_scalar(f'{phase}_loss', epoch_loss, epoch)
-                writer.add_scalar(f'{phase}_accuracy/precision', precision)
-                writer.add_scalar(f'{phase}_accuracy/recall', recall)
+            writer.add_scalars('loss', loss_summary, epoch)
+            writer.add_scalars('precision', precision_summary, epoch)
+            writer.add_scalars('recall', recall_summary, epoch)
+            writer.add_scalars('accuracy', general_accuracy_summary, epoch)
 
             # deep copy the model
             if phase == 'val' and (best_loss == None or epoch_loss < best_loss):
