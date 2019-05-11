@@ -8,16 +8,7 @@ import matplotlib.pyplot as plt
 from ipywidgets import IntProgress
 from IPython.display import display
 
-if __name__ == "__main__":
-    path = {
-        'X_train': 'dataset/X_train',
-        'X_test': 'dataset/X_test',
-        'X_val': 'dataset/X_val',
-        'y_train': 'dataset/y_train',
-        'y_test': 'dataset/y_test',
-        'y_val': 'dataset/y_val',
-    }
-else:
+if os.getcwd().endswith("models"):
     path = {
         'X_train': 'keypress_recognition/dataset/X_train',
         'X_test': 'keypress_recognition/dataset/X_test',
@@ -25,6 +16,15 @@ else:
         'y_train': 'keypress_recognition/dataset/y_train',
         'y_test': 'keypress_recognition/dataset/y_test',
         'y_val': 'keypress_recognition/dataset/y_val',
+    }
+else:
+    path = {
+        'X_train': 'dataset/X_train',
+        'X_test': 'dataset/X_test',
+        'X_val': 'dataset/X_val',
+        'y_train': 'dataset/y_train',
+        'y_test': 'dataset/y_test',
+        'y_val': 'dataset/y_val',
     }
     
 
