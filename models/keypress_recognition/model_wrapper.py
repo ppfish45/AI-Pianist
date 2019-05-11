@@ -4,12 +4,7 @@ import torch.optim as optim
 
 import time
 import copy
-import tqdm
-import cv2
 import numpy as np
-
-from ipywidgets import IntProgress
-from IPython.display import display
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 black_mask = np.array(
@@ -119,7 +114,8 @@ class ModelWrapper():
     def train(
             self,
             dataset,
-            key_type=None,
+            size='single',
+            color='white',
             batch_size=64,
             learning_rate=1e-3,
             num_epochs=5,
@@ -130,11 +126,6 @@ class ModelWrapper():
             save_model=True,
             method=2
     ):
-        """
-        dataset must have these APIs: 
-        get_num_of_data(phase: "train"|"val") -> int, 
-        data_batch(type: "train"|"val", batch_size: int, max_num=max_num_for_this_epoch: int, method: int) -> iterable
-        """
         model = self.model
         criterion = self.loss_fn()
         optimizer = self.optim(self.model.parameters(), lr=learning_rate)
@@ -158,30 +149,14 @@ class ModelWrapper():
                     model.eval()  # Set model to evaluate mode
 
                 running_loss = 0.0
-                # Iterate over data.
-
                 max_num_for_this_epoch = max_num if phase == 'train' else -1
-
-                total = dataset.get_num_of_data(phase) if max_num == -1 else max_num
-
-                bar = IntProgress(max=total)
-
-                display(bar)
-
-                for i in dataset.data_batch(type=phase, batch_size=batch_size, max_num=max_num_for_this_epoch,
-                                            method=method):
-                    if method == 2:
-                        inputs, labels = i
-                    else:
-                        if key_type == 'white':
-                            inputs = i[0]
-                            labels = i[2]
-                        elif key_type == 'black':
-                            inputs = i[1]
-                            labels = i[3]
-                        else:
-                            raise ValueError("Fuck you. Specify key type 'white'|'black'")
-
+                dbatch = dataset.data_batch(type=phase, size=size, color=color, 
+                                            batch_size=batch_size,
+                                            need_velocity=False,
+                                            NCHW=True,
+                                            max_num=max_num_for_this_epoch)
+                # Iterate over data.
+                for inputs, labels in dbatch:
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
                     if torch.cuda.is_available():
@@ -198,10 +173,6 @@ class ModelWrapper():
                     # forward
                     outputs = model(inputs)
                     outputs = torch.squeeze(outputs)
-                    # if method == 2:
-                    #     labels = torch.reshape(labels, [-1, 88])
-                    # else:
-                    #     labels = torch.reshape(labels, [-1, 1])
                     loss = criterion(outputs, labels)
 
                     # backward + optimize only if in training phase
@@ -216,12 +187,7 @@ class ModelWrapper():
                     if torch.cuda.is_available():
                         torch.cuda.empty_cache()
 
-                    bar.value += batch_size
-                    bar.description = f'{bar.value} / {total}'
-
-                bar.close()
-
-                epoch_loss = running_loss / dataset.get_num_of_data(phase)
+                epoch_loss = running_loss / dbatch.max_num
 
                 print('{} Loss: {:.4f}'.format(
                     phase, epoch_loss))
