@@ -98,6 +98,7 @@ class ModelWrapper():
             batch_size=64,
             concatenate=True,
             learning_rate=1e-3,
+            weight_decay=0,
             num_epochs=5,
             max_num=-1,
             best_path='keyboard_model_best.tar',
@@ -108,7 +109,7 @@ class ModelWrapper():
     ):
         model = self.model
         criterion = self.loss_fn()
-        optimizer = self.optim(self.model.parameters(), lr=learning_rate)
+        optimizer = self.optim(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
 
         writer = SummaryWriter()
