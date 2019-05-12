@@ -268,6 +268,20 @@ The reason why we adopt this loss function is that we are targeting at a binary 
 That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ and $y_n\in\{0,1\}$, and data pairs are independent with each other.
 After defining our loss function, our next step is to process the data and set up the network model.
 
+\begin{figure}[h!]
+   \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.33\linewidth]{fig/15.png}
+      \caption{Single Key Split} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.5\linewidth]{fig/14.png}
+      \caption{Key Bundling} \label{fig:l}
+    \end{subfigure}
+   \caption{Comparison between two splitting modes} \label{fig:4}
+\end{figure}   
+
 \subsubsection{Whole Keyboard Detection}
 \label{Keypress-keyboard}
 
@@ -315,7 +329,7 @@ After defining our loss function, our next step is to process the data and set u
 \subsubsection{Key Bundling}
 
    Lastly, we bundle neighbor keys together to construct a new dataset. 
-   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1.
+   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1. (See Figure \ref{fig:4})
    However, this is a hyperparameter and will be tuned during the experiment.
    And as the image size becoming larger, we added two CONV layers and generated a new architecture, which is shown in Figure \ref{fig:j}.
 
@@ -325,15 +339,19 @@ After defining our loss function, our next step is to process the data and set u
 \subsection{Velocity Evaluation}
 
    Last part of our task is to evaluate the velocity of each keypress. 
+   In MIDI file, the velocity is recorded as an integer value ranges from $0$ to $127$. 
+   So our objective is to detect motion in neighbor frames and make a prediction on the velocity value of that key press.
+   
+   Since the prediction is related to several consecutive frames which requires sequence learning technique, we therefore choose the LSTM structure for this task. (See Figure \ref{fig:5}) 
 
    \begin{figure}[h!]
       \centering
       \includegraphics[width=\linewidth]{fig/13.png}
-      \caption{LSTM Architecture for Velocity Evaluation} \label{fig:4}
+      \caption{LSTM Architecture for Velocity Evaluation} \label{fig:5}
    \end{figure}
 
-
 \section{Experiments}
+
 
 \subsection{Hyperparamter tuning}
 
