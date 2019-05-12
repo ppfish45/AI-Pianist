@@ -144,7 +144,7 @@ HUANG Zeyu\\
    However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset.
+   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
 
    \textit{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
    In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.
@@ -153,10 +153,21 @@ HUANG Zeyu\\
 
 \subsection{Dataset Preprocessing}
 
-   1. midi convertion and generation
+\subsubsection{Conversion from/to MIDI format}
 
-   2. split keys 
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of 24fps. Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
 
+The output of our network is a matrix of similar shape. The matrix undergoes a reverse process to transform into a ``24fps'' MIDI file.
+
+\subsubsection{Splitting keys}
+
+To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
+
+We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
+
+\subsubsection{Forward/backward difference of frames}
+
+For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
 
 \section{Methods}
 
