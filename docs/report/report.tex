@@ -45,10 +45,8 @@ HUANG Zeyu\\
 
 \maketitle
 
-% Todo: Dataset Preprocessing, Key Splitting Comparison
+% Todo: Dealing with Section 3.2
 %
-
-
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
@@ -155,19 +153,28 @@ HUANG Zeyu\\
 
 \subsubsection{Conversion from/to MIDI format}
 
-To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. 
+Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
 
-The output of our method is a matrix of similar shape. The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
+The output of our method is a matrix of similar shape. 
+The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
 
-\subsubsection{Splitting keys}
+% \subsubsection{Splitting keys}
 
-To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
+% To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
 
-We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
+% We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
 
 \subsubsection{Forward/backward difference of frames}
 
-For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
+For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). 
+Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. 
+
+For a more clear formulation, denote the $i$-th frame of the video as $F_i$ and corresponding output is $F'_i$, then 
+$$F'_i = F_i\oplus(F_i-F_{i-1})\oplus(F_{i+1}-F_i)$$
+
+
+% In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
 
 \section{Methods}
 
@@ -282,12 +289,12 @@ After defining our loss function, our next step is to process the data and set u
 \begin{figure}[h!]
    \begin{subfigure}{0.2\textwidth}
       \centering
-      \includegraphics[width=0.33\linewidth]{fig/15.png}
+      \includegraphics[width=0.26\linewidth]{fig/15.png}
       \caption{Single Key Split} \label{fig:k}
     \end{subfigure}\hspace*{\fill}
     \begin{subfigure}{0.2\textwidth}
       \centering
-      \includegraphics[width=0.5\linewidth]{fig/14.png}
+      \includegraphics[width=0.4\linewidth]{fig/14.png}
       \caption{Key Bundling} \label{fig:l}
     \end{subfigure}
    \caption{Comparison between two splitting modes} \label{fig:4}
@@ -363,24 +370,41 @@ After defining our loss function, our next step is to process the data and set u
 
 \section{Experiments}
 
-In this section we will talk about our experiment settings and current results.
+   In this section we will talk about our experiment settings including the hyperparameters, and our current results.
 
-\subsection{Metrics}
+\subsection{Hyperparameter Tuning}
+
+   On all models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
+   We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+
+\subsection{Evaluation Metrics}
+   The core task of our approach is keypress recognition which is a binary classification task.
+   Therefore, to evaluate our keypress recognition performance, instead of only utilizing the standard accuracy metric, we introduce two finer criterion: \textit{Precision} and \textit{Recall}.
+   Precision represents the proportion of positive identification correctness while Recall represents the negative identification correct rate, i.e.
+   \begin{align*}
+      Precision &= \dfrac{TP}{TP+FP}\\
+      Recall &= \dfrac{TP}{TP+FN}
+   \end{align*}
+   where $TP$ is True Positive, $FP$ stands for False Positive and $FN$ represents False Negative.
+
+   To fully evaluate the effectiveness of a model, we must examine both precision and recall.
+   However, precision and recall are often in tension. That is, improve precision will always deduct recall rate.
+   So, in order to balance these two values and get an overall accuracy judgement, we introduce a new metric:
+   $$\textit{F-Score} = (1+\beta^2)\cdot\dfrac{Precision\cdot Recall}{\beta^2\cdot Precision + Recall}$$
+   where $\beta$ represents the ratio of Recall weight and Precision weight.
+   In our experiment we use \textit{F1-Score} to describe the recognition performance.
 
 \subsection{Results}
 
-Two criterion: precision and recall
+We have reached \(95\%+\) accuracy on both black keys and white keys. 
+The details are listed below
 
-Minimum Edit Distance
-
-
-\subsection{Results}
-
-Accuracy
 
 Demo Video
 
 \section{Conclusion and Future Work}
+
+In this paper, we've introduced a method to tackle the audio generation problem and achieves quite good performance.
 
 {\small
 \bibliographystyle{ieee}
