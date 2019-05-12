@@ -72,6 +72,11 @@ class ModelWrapper():
             max_num=-1)
         acc_matrix = np.zeros((2, 2), dtype=int)
         for inputs, labels in dbatch:
+            inputs = torch.Tensor(inputs)
+            labels = torch.Tensor(labels)
+            if torch.cuda.is_available():
+                inputs = inputs.cuda()
+                labels = labels.cuda()
             acc_matrix += self.get_accuracy_matrix(inputs, labels, threshold=threshold)
         precision, recall, general = self.evaluate_accuracy_matrix(acc_matrix)
         f1 = 2 * precision * recall / (precision + recall)
