@@ -94,6 +94,7 @@ def get_3layer_model(channel_in, linear_in):
         torch.nn.MaxPool2d(2),
         Flatten(),
         torch.nn.Linear(linear_in, 512),
+        torch.nn.Dropout(0.4),
         torch.nn.Linear(512, 1),
         torch.nn.Sigmoid()
     )
@@ -148,6 +149,6 @@ def get_full_model(channel_in, linear_in):
 
 get_white_key_model = partial(get_2layer_model, linear_in=white_fc_in)
 get_black_key_model = partial(get_2layer_model, linear_in=black_fc_in)
-get_white_bunble_model = partial(get_3layer_model, linear_in=w_bundle_fc_in)
+get_white_bundle_model = partial(get_3layer_model, linear_in=w_bundle_fc_in)
 get_black_bundle_model = partial(get_3layer_model, linear_in=b_bundle_fc_in)
 # get_keyboard_model = partial(get_full_model, linear_in=all_fc_in)
