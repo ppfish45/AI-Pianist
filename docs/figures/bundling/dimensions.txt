@@ -1,0 +1,4 @@
+  White single width: 21px
+  Black single width: 20px
+  White bundle width: 37px
+  Black bundle width: 36px
