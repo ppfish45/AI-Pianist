@@ -2,6 +2,7 @@ if __name__ == "__main__":
     print("Your are trying to run this .py directly, but you should not.")
     print("A wrapper API of this model (feeding data, etc.) is in the parent folder.")
     print("You should run a notebook in the parent folder as well.")
+    print("Screw you cuda error")
     exit(1)
 
 from functools import partial
@@ -57,6 +58,7 @@ def get_2layer_model(channel_in, linear_in):
         torch.nn.MaxPool2d(2),
         Flatten(),
         torch.nn.Linear(linear_in, 512),
+        torch.nn.Dropout(0.4),
         torch.nn.Linear(512, 1),
         torch.nn.Sigmoid()
     )
