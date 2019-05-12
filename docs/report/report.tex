@@ -155,9 +155,9 @@ HUANG Zeyu\\
 
 \subsubsection{Conversion from/to MIDI format}
 
-To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of 24fps. Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
 
-The output of our network is a matrix of similar shape. The matrix undergoes a reverse process to transform into a ``24fps'' MIDI file.
+The output of our method is a matrix of similar shape. The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
 
 \subsubsection{Splitting keys}
 
@@ -324,7 +324,7 @@ After defining our loss function, our next step is to process the data and set u
       \caption{CNN structures for Keypress Recognition} \label{fig:3}
    \end{figure}
 
-\subsubsection{Single Key}
+\subsubsection{Single Key Splitting}
 
    Our next attempt is to split the keyboard into keys and train a neural network to identify whether the specific key is pressed or not. 
    Since the input dimension and information contained are less than the previous one, we constructed a neural network which has fewer layers than the whole keyboard detection model.
