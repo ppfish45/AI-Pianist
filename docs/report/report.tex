@@ -144,7 +144,7 @@ HUANG Zeyu\\
    However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset.
+   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
 
    \textit{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
    In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.
@@ -153,10 +153,21 @@ HUANG Zeyu\\
 
 \subsection{Dataset Preprocessing}
 
-   1. midi convertion and generation
+\subsubsection{Conversion from/to MIDI format}
 
-   2. split keys 
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
 
+The output of our method is a matrix of similar shape. The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
+
+\subsubsection{Splitting keys}
+
+To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
+
+We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
+
+\subsubsection{Forward/backward difference of frames}
+
+For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
 
 \section{Methods}
 
@@ -268,6 +279,20 @@ The reason why we adopt this loss function is that we are targeting at a binary 
 That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ and $y_n\in\{0,1\}$, and data pairs are independent with each other.
 After defining our loss function, our next step is to process the data and set up the network model.
 
+\begin{figure}[h!]
+   \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.33\linewidth]{fig/15.png}
+      \caption{Single Key Split} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.5\linewidth]{fig/14.png}
+      \caption{Key Bundling} \label{fig:l}
+    \end{subfigure}
+   \caption{Comparison between two splitting modes} \label{fig:4}
+\end{figure}   
+
 \subsubsection{Whole Keyboard Detection}
 \label{Keypress-keyboard}
 
@@ -299,7 +324,7 @@ After defining our loss function, our next step is to process the data and set u
       \caption{CNN structures for Keypress Recognition} \label{fig:3}
    \end{figure}
 
-\subsubsection{Single Key}
+\subsubsection{Single Key Splitting}
 
    Our next attempt is to split the keyboard into keys and train a neural network to identify whether the specific key is pressed or not. 
    Since the input dimension and information contained are less than the previous one, we constructed a neural network which has fewer layers than the whole keyboard detection model.
@@ -315,7 +340,7 @@ After defining our loss function, our next step is to process the data and set u
 \subsubsection{Key Bundling}
 
    Lastly, we bundle neighbor keys together to construct a new dataset. 
-   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1.
+   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1. (See Figure \ref{fig:4})
    However, this is a hyperparameter and will be tuned during the experiment.
    And as the image size becoming larger, we added two CONV layers and generated a new architecture, which is shown in Figure \ref{fig:j}.
 
@@ -325,27 +350,35 @@ After defining our loss function, our next step is to process the data and set u
 \subsection{Velocity Evaluation}
 
    Last part of our task is to evaluate the velocity of each keypress. 
+   In MIDI file, the velocity is recorded as an integer value ranges from $0$ to $127$. 
+   So our objective is to detect motion in neighbor frames and make a prediction on the velocity value of that key press.
+   
+   Since the prediction is related to several consecutive frames which requires sequence learning technique, we therefore choose the LSTM structure for this task. (See Figure \ref{fig:5}) 
 
    \begin{figure}[h!]
       \centering
       \includegraphics[width=\linewidth]{fig/13.png}
-      \caption{LSTM Architecture for Velocity Evaluation} \label{fig:4}
+      \caption{LSTM Architecture for Velocity Evaluation} \label{fig:5}
    \end{figure}
-
 
 \section{Experiments}
 
-\subsection{Hyperparamter tuning}
+In this section we will talk about our experiment settings and current results.
 
 \subsection{Metrics}
+
+\subsection{Results}
 
 Two criterion: precision and recall
 
 Minimum Edit Distance
 
-Platform Survey
 
 \subsection{Results}
+
+Accuracy
+
+Demo Video
 
 \section{Conclusion and Future Work}
 
