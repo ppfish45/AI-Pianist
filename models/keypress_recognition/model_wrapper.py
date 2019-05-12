@@ -59,6 +59,29 @@ class ModelWrapper():
                 return outputs.type(torch.ByteTensor)
             return outputs
 
+    def test(self, dataset, size, color, concatenate, threshold=0.5):
+        """
+        return: a dict of 'precision', 'recall', 'accuracy', 'F1 score'
+        """
+        self.model.eval()
+        dbatch = dataset.data_batch(type='test', size=size, color=color, 
+            # batch_size=batch_size,
+            concatenate=concatenate,
+            need_velocity=False,
+            NCHW=True,
+            max_num=-1)
+        acc_matrix = np.zeros((2, 2), dtype=int)
+        for inputs, labels in dbatch:
+            acc_matrix += self.get_accuracy_matrix(inputs, labels, threshold=threshold)
+        precision, recall, general = self.evaluate_accuracy_matrix(acc_matrix)
+        f1 = 2 * precision * recall / (precision + recall)
+        return {
+            'precision': precision,
+            'recall': recall,
+            'accuracy': general,
+            'F1 score': f1
+        }
+
     def get_accuracy_matrix(self, X, y, threshold=0.5):
         """
         Returns a 2*2 matrix of two values:
