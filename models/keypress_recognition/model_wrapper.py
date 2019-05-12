@@ -5,7 +5,7 @@ import torch.optim as optim
 import time
 import copy
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 import warnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
