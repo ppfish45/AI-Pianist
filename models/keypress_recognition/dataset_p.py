@@ -430,22 +430,26 @@ class data_batch:
         self.num_unpressed = 0
         self.need_velocity = need_velocity
         self.concatenate = concatenate
-        for i, x in enumerate(y[color][type]):
-            if x > 0:
-                self.pressed.append(i)
-                self.num_pressed += 1
+        if self.type == 'train':
+            for i, x in enumerate(y[color][type]):
+                if x > 0:
+                    self.pressed.append(i)
+                    self.num_pressed += 1
+                else:
+                    self.unpressed.append(i)
+                    self.num_unpressed += 1
+            if shuffle:
+                random.shuffle(self.pressed)
+                random.shuffle(self.unpressed)
+            if self.max_num == -1:
+                self.max_num = len(self.unpressed)
+                self.iter_num = len(self.unpressed) * 2
             else:
-                self.unpressed.append(i)
-                self.num_unpressed += 1
-        if shuffle:
-            random.shuffle(self.pressed)
-            random.shuffle(self.unpressed)
-        if self.max_num == -1:
-            self.max_num = len(self.unpressed)
-            self.iter_num = len(self.unpressed) * 2
+                self.max_num = self.max_num // 2
+                self.iter_num = max_num
         else:
-            self.max_num = self.max_num // 2
-            self.iter_num = max_num
+            self.max_num = len(y[color][type])
+            self.iter_num = len(y[color][type])
         self.bar = IntProgress(max=self.iter_num)
         display(self.bar)
 
@@ -454,25 +458,37 @@ class data_batch:
         return self
 
     def __next__(self):
-        start = self.index * self.batch_size // 2
-        end = (self.index + 1) * self.batch_size // 2
-        if start >= self.max_num:
-            self.bar.close()
-            raise StopIteration
-        if end >= self.max_num:
-            end = self.max_num
-            start = end - self.batch_size // 2
-        self.index += 1
         ind = np.array([])
-        s = start % self.num_pressed
-        t = end % self.num_pressed
-        if start // self.num_pressed == end // self.num_pressed:
-            ind = np.append(ind, np.array(self.pressed[s:t]))
+        if self.type == 'train':
+            start = self.index * self.batch_size // 2
+            end = (self.index + 1) * self.batch_size // 2
+            if start >= self.max_num:
+                self.bar.close()
+                raise StopIteration
+            if end >= self.max_num:
+                end = self.max_num
+                start = end - self.batch_size // 2
+            self.index += 1
+            s = start % self.num_pressed
+            t = end % self.num_pressed
+            if start // self.num_pressed == end // self.num_pressed:
+                ind = np.append(ind, np.array(self.pressed[s:t]))
+            else:
+                ind = np.append(ind, np.array(self.pressed[s:]))
+                ind = np.append(ind, np.array(self.pressed[:t]))
+            ind = np.append(ind, np.array(self.unpressed[start:end]))
+            ind = ind.flatten().astype('int64')
         else:
-            ind = np.append(ind, np.array(self.pressed[s:]))
-            ind = np.append(ind, np.array(self.pressed[:t]))
-        ind = np.append(ind, np.array(self.unpressed[start:end]))
-        ind = ind.flatten().astype('int64')
+            start = self.index * self.batch_size
+            end = start + self.batch_size
+            if start >= self.max_num:
+                self.bar.close()
+                raise StopIteration
+            if end >= self.max_num:
+                end = self.max_num
+                start = end - self.batch_size
+            self.index += 1
+            ind = np.arange(start, end)
         np.random.shuffle(ind)
         X_return = X[self.size][self.color][self.type][ind]
         if self.concatenate:
