@@ -136,13 +136,14 @@ class ModelWrapper():
             best_path='keyboard_model_best.tar',
             current_path='keyboard_model_latest.tar',
             decay_every=10,
+            decay_by=0.05,
             save_model=True,
             method=2
     ):
         model = self.model
         criterion = self.loss_fn()
         optimizer = self.optim(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=0.05)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=decay_every, gamma=decay_by)
 
         writer = SummaryWriter()
         since = time.time()
