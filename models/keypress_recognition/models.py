@@ -2,7 +2,10 @@ if __name__ == "__main__":
     print("Your are trying to run this .py directly, but you should not.")
     print("A wrapper API of this model (feeding data, etc.) is in the parent folder.")
     print("You should run a notebook in the parent folder as well.")
+    print("Screw you cuda error")
     exit(1)
+
+from functools import partial
 
 import torch
 import torch.nn as nn
@@ -37,9 +40,9 @@ class Flatten(torch.nn.Module):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def get_2layer_model(linear_in):
+def get_2layer_model(channel_in, linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(3, 16, 3, padding=1),
+        torch.nn.Conv2d(channel_in, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
@@ -55,6 +58,7 @@ def get_2layer_model(linear_in):
         torch.nn.MaxPool2d(2),
         Flatten(),
         torch.nn.Linear(linear_in, 512),
+        torch.nn.Dropout(0.4),
         torch.nn.Linear(512, 1),
         torch.nn.Sigmoid()
     )
@@ -65,9 +69,9 @@ def get_2layer_model(linear_in):
     )
 
 
-def get_3layer_model(linear_in):
+def get_3layer_model(channel_in, linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(3, 16, 3, padding=1),
+        torch.nn.Conv2d(channel_in, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
@@ -90,6 +94,7 @@ def get_3layer_model(linear_in):
         torch.nn.MaxPool2d(2),
         Flatten(),
         torch.nn.Linear(linear_in, 512),
+        torch.nn.Dropout(0.4),
         torch.nn.Linear(512, 1),
         torch.nn.Sigmoid()
     )
@@ -100,9 +105,9 @@ def get_3layer_model(linear_in):
     )
 
 
-def get_full_model(linear_in):
+def get_full_model(channel_in, linear_in):
     model_struct = torch.nn.Sequential(
-        torch.nn.Conv2d(3, 16, 3, padding=1),
+        torch.nn.Conv2d(channel_in, 16, 3, padding=1),
         torch.nn.ReLU(),
         torch.nn.BatchNorm2d(16),
         torch.nn.Conv2d(16, 16, 3, padding=1),
@@ -142,8 +147,8 @@ def get_full_model(linear_in):
     )
 
 
-white_key_model = get_2layer_model(white_fc_in)
-black_key_model = get_2layer_model(black_fc_in)
-white_bundle_model = get_3layer_model(w_bundle_fc_in)
-black_bundle_model = get_3layer_model(b_bundle_fc_in)
-keyboard_model = get_full_model(all_fc_in)
+get_white_key_model = partial(get_2layer_model, linear_in=white_fc_in)
+get_black_key_model = partial(get_2layer_model, linear_in=black_fc_in)
+get_white_bundle_model = partial(get_3layer_model, linear_in=w_bundle_fc_in)
+get_black_bundle_model = partial(get_3layer_model, linear_in=b_bundle_fc_in)
+# get_keyboard_model = partial(get_full_model, linear_in=all_fc_in)
