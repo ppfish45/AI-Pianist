@@ -100,6 +100,24 @@ def merge_two_colors(white, black, dtype=bool):
     return r
 
 
+def evaluate(pred, label):
+    """
+    numpy version of evaluation
+    """
+    tp = np.sum(np.logical_and(pred, label))
+    fp = np.sum(np.logical_and(pred, label==False))
+    fn = np.sum(np.logical_and(pred==False, label))
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * precision * recall / (precision + recall)
+    return {
+        'accuracy': np.sum(pred == label),
+        'precision': precision,
+        'recall': recall,
+        'F1 score': f1
+    }
+
+
 black_coor = None
 for path in X_path_list:
     img = cv2.imread(path)
