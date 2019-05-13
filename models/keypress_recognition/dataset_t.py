@@ -88,17 +88,31 @@ def merge_two_colors(white, black, dtype=bool):
     white: (52,)
     black: (36,)
     """
-    assert white.shape[0] == 52, f"Expected white shape (52,) but has {white.shape}"
-    assert black.shape[0] == 36, f"Expected white shape (36,) but has {black.shape}"
-    r = np.empty((88,), dtype=dtype)
-    white_iter = iter(white)
-    black_iter = iter(black)
-    for i in white_mask:
-        r[i] = next(white_iter)
-    for i in black_mask:
-        r[i] = next(black_iter)
-    return r
-
+    if len(white.shape) == 1:
+        assert white.shape[0] == 52, f"Expected white shape (52,) but has {white.shape}"
+        assert black.shape[0] == 36, f"Expected white shape (36,) but has {black.shape}"
+        r = np.empty((88,), dtype=dtype)
+        white_iter = iter(white)
+        black_iter = iter(black)
+        for i in white_mask:
+            r[i] = next(white_iter)
+        for i in black_mask:
+            r[i] = next(black_iter)
+        return r
+    else:
+        assert white.shape[1] == 52, f"Expected white shape (52,) but has {white.shape}"
+        assert black.shape[1] == 36, f"Expected white shape (36,) but has {black.shape}"
+        assert white.shape[0] == black.shape[0]
+        r = np.empty((white.shape[0], 88), dtype=dtype)
+        white_i = 0
+        black_i = 0
+        for i in white_mask:
+            r[:, i] = white[:, white_i]
+            white_i += 1
+        for i in black_mask:
+            r[:, i] = black[:, black_i]
+            black_i += 1
+        return r
 
 def evaluate(pred, label):
     """

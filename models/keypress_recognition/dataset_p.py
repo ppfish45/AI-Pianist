@@ -311,7 +311,7 @@ def seperate(spliter, color, size, concatenate=False, delta=3):
         for i, p in enumerate(X_path[name]):
             white_tmp_mask = None
             black_tmp_mask = None
-            if random.random() > 0.005:
+            if random.random() > 1:
                 white_tmp_mask, black_tmp_mask = get_masks(y_org[name][i])
             else:
                 white_tmp_mask = np.arange(52)
@@ -509,4 +509,4 @@ class data_batch:
         if not self.need_velocity:
             y_return = (y_return > 0).astype(np.int)
         self.bar.value += self.batch_size
-        return (X_return, y_return)
+        return (X_return, y_return, ind)
