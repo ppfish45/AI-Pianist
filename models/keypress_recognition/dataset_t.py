@@ -1,6 +1,9 @@
 import os
 import cv2
 import numpy as np
+from ipywidgets import IntProgress
+from IPython.display import display
+
 
 if os.getcwd().endswith("models"):
     X_path = 'keypress_recognition/dataset/X_test'
@@ -123,15 +126,19 @@ class data_batch:
 
     def __iter__(self):
         self.index = 0
+        self.bar = IntProgress(max=self.len)
+        display(bar)
         return self
 
 
     def __next__(self):
         if self.index >= self.len:
+            self.bar.close()
             raise StopIteration
         else:
             img_path = X_path_list[self.index]
             self.index += 1
+            self.bar.value += 1
         img = cv2.imread(img_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         white_keys = get_white_keys(img, (bundle_paddings if self.bundle else single_paddings))
