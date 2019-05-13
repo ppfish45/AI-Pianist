@@ -127,7 +127,7 @@ class data_batch:
     def __iter__(self):
         self.index = 0
         self.bar = IntProgress(max=self.len)
-        display(bar)
+        display(self.bar)
         return self
 
 
