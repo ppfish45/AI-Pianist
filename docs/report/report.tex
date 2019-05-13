@@ -375,7 +375,7 @@ After gating and rescaling this value, we will derive the final predicted veloci
 
    The loss function we used is \textbf{Mean-Squared Loss} which can be described as following:
 
-   \[w^*=&\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
+   \[w^*=\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
 
    While training, we used \(Sigmoid(logit)\) as the final output of the network instead of \(Sigmoid(logit) * 127\).
 
