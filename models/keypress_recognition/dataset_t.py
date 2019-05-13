@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 
-
 if os.getcwd().endswith("models"):
     X_path = 'keypress_recognition/dataset/X_test'
 else:
@@ -22,6 +21,10 @@ black_single_width = 16 + 2 * single_paddings
 black_bundle_width = 16 + 2 * bundle_paddings
 height = 106
 width = 884
+black_mask = [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+    66, 69, 71, 73, 76, 78, 81, 83, 85]
+white_mask = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+    50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87]
 
 
 def get_black_boundaries(img, expected_width=16):
@@ -75,6 +78,24 @@ def get_black_keys(img, boundaries, paddings):
     # img = np.concatenate((padding, img, padding), axis=1).astype(np.uint8)
     img = np.pad(img, ((0, 0), (paddings, paddings), (0, 0)), mode='constant', constant_values=0)
     return np.array([img[:, left[i] - paddings : right[i] + paddings + 1, :] for i in range(36)])
+
+
+def merge_two_colors(white, black, dtype=bool):
+    """
+    white: (52,)
+    black: (36,)
+    """
+    assert white.shape[0] == 52, f"Expected white shape (52,) but has {white.shape}"
+    assert black.shape[0] == 36, f"Expected white shape (36,) but has {black.shape}"
+    r = np.empty((88,), dtype=dtype)
+    white_iter = iter(white_mask)
+    black_iter = iter(black_mask)
+    for i in range(88):
+        if i in white_mask:
+            r[i] = next(white_iter)
+        else:
+            r[i] = next(black_iter)
+    return r
 
 
 black_coor = None
