@@ -12,6 +12,18 @@ F1-score = 0.9778734905 / 0.982672484
 
 
 
+Best white bundle
+
+acc 0.9749 / 0.9749
+
+precision 0.9696 / 0.9729
+
+recall 0.9805 / 0.9805
+
+F1-score = 0.9750195375/0.9766852155
+
+
+
 Best black single 
 
 Lowest Loss:
