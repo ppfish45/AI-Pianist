@@ -88,13 +88,12 @@ def merge_two_colors(white, black, dtype=bool):
     assert white.shape[0] == 52, f"Expected white shape (52,) but has {white.shape}"
     assert black.shape[0] == 36, f"Expected white shape (36,) but has {black.shape}"
     r = np.empty((88,), dtype=dtype)
-    white_iter = iter(white_mask)
-    black_iter = iter(black_mask)
-    for i in range(88):
-        if i in white_mask:
-            r[i] = next(white_iter)
-        else:
-            r[i] = next(black_iter)
+    white_iter = iter(white)
+    black_iter = iter(black)
+    for i in white_mask:
+        r[i] = next(white_iter)
+    for i in black_mask:
+        r[i] = next(black_iter)
     return r
 
 
