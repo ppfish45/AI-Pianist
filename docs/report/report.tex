@@ -401,40 +401,47 @@ After gating and rescaling this value, we will derive the final predicted veloci
 
    The loss function we used is \textbf{Mean-Squared Loss} which can be described as following:
 
-   \[w^*=&\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
+   \[w^*=\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
 
    While training, we used \(Sigmoid(logit)\) as the final output of the network instead of \(Sigmoid(logit) * 127\).
 
 \section{Experiments}
 
-   In this section we will talk about our experiment settings including the hyperparameters, and our current results.
+In this section we will talk about our experiment settings including the hyperparameters, and our current results.
 
-\subsection{Hyperparameter Tuning}
+\subsection{Keypress Recognition}
 
-   All models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
-   We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+The whole keyboard network is deprecated in an early stage of our experiments due to its shortcomings mentioned in \ref{Keypress-keyboard}. 
+Hence, the following experiment details only concern the single key and bundled key approaches, and there are four models in total.
 
-\subsection{Evaluation Metrics}
-   The core task of our approach is keypress recognition which is a binary classification task.
-   Therefore, to evaluate our keypress recognition performance, instead of only utilizing the standard accuracy metric, we introduce two finer criterion: \textit{Precision} and \textit{Recall}.
-   Precision represents the proportion of positive identification correctness while Recall represents the negative identification correct rate, i.e.
-   \begin{align*}
-      Precision &= \dfrac{TP}{TP+FP}\\
-      Recall &= \dfrac{TP}{TP+FN}
-   \end{align*}
-   where $TP$ is True Positive, $FP$ stands for False Positive and $FN$ represents False Negative.
+\subsubsection{Hyperparameter Tuning}
 
-   To fully evaluate the effectiveness of a model, we must examine both precision and recall.
-   However, precision and recall are often in tension. That is, improve precision will always deduct recall rate.
-   So, in order to balance these two values and get an overall accuracy judgement, we introduce a new metric:
-   $$\textit{F-Score} = (1+\beta^2)\cdot\dfrac{Precision\cdot Recall}{\beta^2\cdot Precision + Recall}$$
-   where $\beta$ represents the ratio of Recall weight and Precision weight.
-   In our experiment we use \textit{F1-Score} to describe the recognition performance.
+All four models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $10$ epochs. 
+We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
 
-\subsection{Results}
+\subsubsection{Evaluation Metrics}
+
+To evaluate our keypress recognition performance, apart from the common accuracy, we also introduce two finer criterion: \textit{Precision} and \textit{Recall}.
+\begin{align*}
+   Precision &= \frac{TP}{TP+FP}\\
+   Recall &= \frac{TP}{TP+FN}
+\end{align*}
+where
+\begin{align*}
+   TP &= \text{\# pressed keys predicted as ``pressed''}\\
+   FP &= \text{\# unpressed keys predicted as ``pressed''}\\
+   FN &= \text{\# pressed keys predicted as ``unpressed''}
+\end{align*}
+
+We expect both metrics to be high. However, an increase in one often indicates a decrease in the other.
+Thus, we introduce another commonly used metric:
+$$F1 = 2\dfrac{Precision\cdot Recall}{Precision + Recall}$$
+To describe the recognition performance.
+
+\subsubsection{Results}
 
 We have reached \(95\%+\) accuracy on both black keys and white keys. 
-And both Single and Bundle case splitting achieves quite good results.
+Both Single and Bundle case splitting achieves quite good results.
 The details are listed below
 
 
