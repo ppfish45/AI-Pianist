@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{subcaption}
+\usepackage{booktabs}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -117,7 +118,7 @@ HUANG Zeyu\\
 
    Another solution towards this problem was proposed by Akbari et al. \cite{Akbari} 
    They proposed a system of automatically annotating piano-playing video using convolutional neural networks (CNNs) and two separate binary support vector machines (SVMs).
-   Though a high accuracy has been achieved in keyboard and hand detection, this solution tackles issues according to some artiﬁcially formulated rules related to the visual nature of the piano keyboard, which is hard to prove its correctness in most cases.
+   Though a high accuracy has been achieved in keyboard and hand detection, this solution tackles issues according to some artificially formulated rules related to the visual nature of the piano keyboard, which is hard to prove its correctness in most cases.
    Also, since it applies CNN method in all stages of the problem, the computational cost is rather high, which is unavoidable.
 
 %------------------------------------------------------------------------
@@ -125,29 +126,54 @@ HUANG Zeyu\\
 
    In this section, we will talk about our dataset source and pre-processing.
 
-   We adopt our dataset mainly from two sources: modified from the dataset that was been used in previous work done by Akbari \cite{Akbari}; our own record.
+   We adopt our dataset mainly from two sources: \textbf{modified from the dataset that was been used in previous work done by Akbari \cite{Akbari}}; \textbf{our own record}.
    Both datasets are formed by two parts: muted piano-playing videos and corresponding MIDI file, where contains all the pitch and velocity information.
 
 \subsection{Dataset Source}
+
+   \subsubsection{Dataset from Previous Work}
+
    First part of our dataset is obtained from a previous research \cite{Akbari}. It consists of piano playing videos captured in different situations which may lead to enhancement of model's strength:
 
-   \textit{Camera Position} As variations in position may lead to keyboard detection failure, this dataset's recording position contains three posibilities: $+45,\ 0,\ -45$ degrees from vertial.
+   \textbf{Camera Position} As variations in position may lead to keyboard detection failure, this dataset's recording position contains three posibilities: $+45,\ 0,\ -45$ degrees from vertial.
 
-   \textit{Pianists} This dataset includes $14$ different players with different hand sizes, playing styles and skin colors, which will increase robustness of the model.
+   \textbf{Pianists} This dataset includes $14$ different players with different hand sizes, playing styles and skin colors, which will increase robustness of the model.
 
-   \textit{Positive and Negative Examples} This dataset also include both positive and negative examples, where negative stands for moving the hands over the keyboard without pressing any key.
+   \textbf{Positive and Negative Examples} This dataset also include both positive and negative examples, where negative stands for moving the hands over the keyboard without pressing any key.\\
    
-   In this particular part of dataset, there is $71$ recorded videos and $70540$ frams in total. And we extracted about $600000$ white keys and $400000$ black keys from it. 
+   \begin{minipage}{0.9\linewidth}
+      \centering
+   \begin{tabular}{ccc}
+      \toprule
+      \# of Frames&\# of Black&\# of White\\
+      \midrule
+      70540&\sim600000&\sim400000\\
+      \bottomrule
+      \end{tabular}
+      \captionof{table}{Stats of Previous Dataset} \label{tab:prevdataset} 
+   \end{minipage}
+      
+   \subsubsection{Our New Dataset}
 
    However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
+   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
 
-   \textit{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
-   In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.
+   \textbf{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
+   In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.\\
 
-   In our dataset, there're $22266$ frames in total, with $14536$ black key-press and $27843$ white key-press recorded.
+   \begin{minipage}{0.9\linewidth}
+      \centering
+   \begin{tabular}{ccc}
+      \toprule
+      \# of Frames&\# of Black&\# of White\\
+      \midrule
+      22266&14536&\sim27843\\
+      \bottomrule
+      \end{tabular}
+      \captionof{table}{Stats of Our Dataset} \label{tab:ourdataset} 
+   \end{minipage}
 
 \subsection{Dataset Preprocessing}
 
@@ -158,12 +184,6 @@ Then, we generates a \(N \times 88\) label for each video file recording the sta
 
 The output of our method is a matrix of similar shape. 
 The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
-
-% \subsubsection{Splitting keys}
-
-% To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
-
-% We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
 
 \subsubsection{Forward/backward difference of frames}
 
@@ -187,7 +207,7 @@ As discussed in Section \ref{Introduction}, we divide this problem into three st
 Towards the keyboard detection problem, we've tried three methods. 
 
 \subsubsection{Hough Line Detection}
-Firstly, we adopted a traditional computer vision method `Hough Line Detection', which is shown in Figure \ref{fig:1}. 
+Firstly, we adopted the traditional CV method Hough Line Detection into this task, which is shown in Figure \ref{fig:1}. 
 % It first conduct Gaussian Blurring on the picture in order to avoid noise for edge detection. 
 % Then the result will be fed into the Canny Edge Detector \cite{Canny}.
 Firstly, we can obtain the edge information of the picture by conducting Gaussian Blurring and Canny Edge Detection on it.
@@ -269,11 +289,9 @@ The result shows that this method is quite robust and accurate in determining th
 Under most circumstances, the method can extract the keyboard correctly and entirely.
 A comparison example is shown in Figure \ref{fig:2}
 
-\subsection{Keypress Recognition}
+\subsection{Keypress Recognition} \label{keypressdetection}
 
-Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it.
-In the following discussion, we will develop CNN models to conduct keypress recognition. 
-Before going into different data-processing methods, we first talk about common loss function for the following networks.
+Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it. We will develop CNN models to accomplish this task.
 
 \subsubsection{Loss Function}
 The loss function we used is \textbf{Binary Cross Entropy Loss}, which can be described as following:
@@ -282,37 +300,22 @@ The loss function we used is \textbf{Binary Cross Entropy Loss}, which can be de
       &+(1-y_i)\log(1-\log{w(x_i,\theta)})]+\lambda||w||_2
 \end{align*}
 
-The reason why we adopt this loss function is that we are targeting at a binary labelling problem.
-That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ and $y_n\in\{0,1\}$, and data pairs are independent with each other.
+The reason is that we are targeting at a binary labelling problem.
+That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ is the images and $y_n\in\{0,1\}$ is the predicted probability of begin pressed, and data pairs are independent of each other.
 After defining our loss function, our next step is to process the data and set up the network model.
-
-\begin{figure}[h!]
-   \begin{subfigure}{0.2\textwidth}
-      \centering
-      \includegraphics[width=0.26\linewidth]{fig/15.png}
-      \caption{Single Key Split} \label{fig:k}
-    \end{subfigure}\hspace*{\fill}
-    \begin{subfigure}{0.2\textwidth}
-      \centering
-      \includegraphics[width=0.4\linewidth]{fig/14.png}
-      \caption{Key Bundling} \label{fig:l}
-    \end{subfigure}
-   \caption{Comparison between two splitting modes} \label{fig:4}
-\end{figure}   
 
 \subsubsection{Whole Keyboard Detection}
 \label{Keypress-keyboard}
 
    Our first attempt is to put the whole keyboard and corresponding frame note label into the neural network, trying to recognize both the pressing pattern as well as key location by one network.
    We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
-   Our set our CNN structure to be VGG-like, the design is shown in the Figure \ref{fig:h}
+   The set our CNN structure is VGG-like, and the design is shown in the Figure \ref{fig:h}.
 
-   Since this method doesn't require any data preprocessing on the derived data from Task \ref{Keyboard}, it is quite easy to prepare data.
-   However, it's noticed that in our train set, some keys are frequently pressed while some are pressed rarely.
-   This kind of keypress inbalance leads to weakness in the detection.
-   Also, as hands are comparatively small than the whole keyboard, the network tends to focus on other factors such as illumination circumstance instead of little hand movement, which lower down the recognition accuracy.
-
-   Due to the above drawbacks, the network's recognition accuracy is not quite good. Therefore we tried the idea of splitting all the keys and recognize them respectively.
+   This method doesn't require any further data processing on the data derived from Task \ref{Keyboard}.
+   However, we failed to obtain a good result with this approach. 
+   One major problem may be that in our training set, some keys are frequently pressed while some are rarely pressed.
+   This inbalance of frequency could provide the model with wrong attention.
+   Also, as hands are small compared to the whole keyboard, the network tends to focus on other factors such as illumination conditions instead of hand motions, which may lower the accuracy.
 
    \begin{figure}[h!]
       \centering
@@ -333,34 +336,60 @@ After defining our loss function, our next step is to process the data and set u
 
 \subsubsection{Single Key Splitting}
 
-   Our next attempt is to split the keyboard into keys and train a neural network to identify whether the specific key is pressed or not. 
-   Since the input dimension and information contained are less than the previous one, we constructed a neural network which has fewer layers than the whole keyboard detection model.
-   The model structure is shown in Figure \ref{fig:i}
+To help direct the model's attention, in our next attempt we split the input image into 88 segments, 
+each containing one piano key object at the center as our training target. 
+Each white key is located by dividing a image into 52 pieces along the x-axis. 
+Each black key is located using traditional cv algorithms. 
+Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. 
+Finally, we add some ``tolerance'' by widening the cropped area by 2-4 pixels on its left and right sides to avoid the cropping area being to tight. 
 
-   This model works quite well on our dataset, and achieves higher accuracy than the previous mehthod as data partition becomes finer.
-   And the inbalance problem mentioned in Section \ref{Keypress-keyboard} won't affect the recognition any longer.
+We have trained two models for black and white keys respectively, each of the same structure shown in \ref{fig:i}.
 
-   However, we noticed that the single key extraction may lose some information on key-pressing as neighbor keys can become comparison to the selected key.
-   Also, hand gesture could be shown more clearly with neighbor keys included.
-   Therefore, to achieve better accuracy, we consider to bundle nearby keys and feed it into the neural network.
+This model works quite well on our dataset, and achieves higher accuracy than the previous method as we manually help direct the model's attention and eliminate the aforementioned frequency inbalance issue.
 
 \subsubsection{Key Bundling}
 
-   Lastly, we bundle neighbor keys together to construct a new dataset. 
-   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1. (See Figure \ref{fig:4})
-   However, this is a hyperparameter and will be tuned during the experiment.
-   And as the image size becoming larger, we added two CONV layers and generated a new architecture, which is shown in Figure \ref{fig:j}.
+\begin{figure}[h!]
+   \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.26\linewidth]{fig/15.png}
+      \caption{Single Key Split} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.4\linewidth]{fig/14.png}
+      \caption{Key Bundling} \label{fig:l}
+    \end{subfigure}
+   \caption{Comparison between two splitting modes} \label{fig:4}
+\end{figure}   
 
-   Comparing to the second method, it includes extra information about neighbor keys and hand motion surrounded without introducing the inbalance problem mentioned in Section \ref{Keypress-keyboard}.
-   With respect to the experiment result, its accuracy indeed becomes higher and even exceeds best current result.
+Lastly, we also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to include some neighbor keys.
+In other words, we will produce images of several keys when the centered key is our training target. 
+
+In our implementation, we make the number of neighbor keys to be bundled a variable hyperparameter. 
+Since bundling too many keys tends to incur more noise, after some experiments we determined the bundling number to be $B = 3$, including exact one key on both sides. (See Figure \ref{fig:4})
+
+The model we use to train bundled key images are shown in Figure \ref{fig:j}. 
+
+Compared to the second method, it includes extra information about neighbor keys and hand motions without introducing the aforementioned inbalance problem either. However, more interference is introduced as well.
+
+In our experiments, this approach outperforms the single key splitting approach in training set and validation set, but slightly weaker in the test set.
 
 \subsection{Velocity Evaluation}
 
    Last part of our task is to evaluate the velocity of each keypress. 
    In MIDI file, the velocity is recorded as an integer value ranges from $0$ to $127$. 
-   So our objective is to detect motion in neighbor frames and make a prediction on the velocity value of that key press.
+   So our objective is to detect motion in ``pressed'' frames and neighbor frames and make a prediction on the velocity value of that key press.
    
-   Since the prediction is related to several consecutive frames which requires sequence learning technique, we therefore choose the LSTM structure for this task. (See Figure \ref{fig:5}) 
+   Since this prediction involves extracting features in a sequence, we use LSTM to tackle this problem. 
+   
+   \subsubsection{LSTM Architecture}
+
+   In the sense of that velocity is related to how fast the keypress depth changes, which is also an important feature to determine whether a key is pressed, we used a CNN model pretrained in keypress detection \ref{keypressdetection} as the feature extractor for each input image. Then a sequence of feature tensors will be fed into a two-layer LSTM network with hidden size of 256, generating a single logit value.
+   
+   \[Velocity = Sigmoid(logit) * 127\]
+   
+After gating and rescaling this value, we will derive the final predicted velocity ranging from \([0, 128)\).
 
    \begin{figure}[h!]
       \centering
@@ -368,36 +397,51 @@ After defining our loss function, our next step is to process the data and set u
       \caption{LSTM Architecture for Velocity Evaluation} \label{fig:5}
    \end{figure}
 
+   \subsubsection{Loss Function}
+
+   The loss function we used is \textbf{Mean-Squared Loss} which can be described as following:
+
+   \[w^*=\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
+
+   While training, we used \(Sigmoid(logit)\) as the final output of the network instead of \(Sigmoid(logit) * 127\).
+
 \section{Experiments}
 
-   In this section we will talk about our experiment settings including the hyperparameters, and our current results.
+In this section we will talk about our experiment settings including the hyperparameters, and our current results.
 
-\subsection{Hyperparameter Tuning}
+\subsection{Keypress Recognition}
 
-   On all models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
-   We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+The whole keyboard network is deprecated in an early stage of our experiments due to its shortcomings mentioned in \ref{Keypress-keyboard}. 
+Hence, the following experiment details only concern the single key and bundled key approaches, and there are four models in total.
 
-\subsection{Evaluation Metrics}
-   The core task of our approach is keypress recognition which is a binary classification task.
-   Therefore, to evaluate our keypress recognition performance, instead of only utilizing the standard accuracy metric, we introduce two finer criterion: \textit{Precision} and \textit{Recall}.
-   Precision represents the proportion of positive identification correctness while Recall represents the negative identification correct rate, i.e.
-   \begin{align*}
-      Precision &= \dfrac{TP}{TP+FP}\\
-      Recall &= \dfrac{TP}{TP+FN}
-   \end{align*}
-   where $TP$ is True Positive, $FP$ stands for False Positive and $FN$ represents False Negative.
+\subsubsection{Hyperparameter Tuning}
 
-   To fully evaluate the effectiveness of a model, we must examine both precision and recall.
-   However, precision and recall are often in tension. That is, improve precision will always deduct recall rate.
-   So, in order to balance these two values and get an overall accuracy judgement, we introduce a new metric:
-   $$\textit{F-Score} = (1+\beta^2)\cdot\dfrac{Precision\cdot Recall}{\beta^2\cdot Precision + Recall}$$
-   where $\beta$ represents the ratio of Recall weight and Precision weight.
-   In our experiment we use \textit{F1-Score} to describe the recognition performance.
+All four models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $10$ epochs. 
+We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
 
-\subsection{Results}
+\subsubsection{Evaluation Metrics}
+
+To evaluate our keypress recognition performance, apart from the common accuracy, we also introduce two finer criterion: \textit{Precision} and \textit{Recall}.
+\begin{align*}
+   Precision &= \frac{TP}{TP+FP}\\
+   Recall &= \frac{TP}{TP+FN}
+\end{align*}
+where
+\begin{align*}
+   TP &= \text{\# pressed keys predicted as ``pressed''}\\
+   FP &= \text{\# unpressed keys predicted as ``pressed''}\\
+   FN &= \text{\# pressed keys predicted as ``unpressed''}
+\end{align*}
+
+We expect both metrics to be high. However, an increase in one often indicates a decrease in the other.
+Thus, we introduce another commonly used metric:
+$$F1 = 2\dfrac{Precision\cdot Recall}{Precision + Recall}$$
+To describe the recognition performance.
+
+\subsubsection{Results}
 
 We have reached \(95\%+\) accuracy on both black keys and white keys. 
-And both Single and Bundle case splitting achieves quite good results.
+Both Single and Bundle case splitting achieves quite good results.
 The details are listed below
 
 
