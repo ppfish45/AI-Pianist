@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{subcaption}
+\usepackage{booktabs}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -125,29 +126,54 @@ HUANG Zeyu\\
 
    In this section, we will talk about our dataset source and pre-processing.
 
-   We adopt our dataset mainly from two sources: modified from the dataset that was been used in previous work done by Akbari \cite{Akbari}; our own record.
+   We adopt our dataset mainly from two sources: \textbf{modified from the dataset that was been used in previous work done by Akbari \cite{Akbari}}; \textbf{our own record}.
    Both datasets are formed by two parts: muted piano-playing videos and corresponding MIDI file, where contains all the pitch and velocity information.
 
 \subsection{Dataset Source}
+
+   \subsubsection{Dataset from Previous Work}
+
    First part of our dataset is obtained from a previous research \cite{Akbari}. It consists of piano playing videos captured in different situations which may lead to enhancement of model's strength:
 
-   \textit{Camera Position} As variations in position may lead to keyboard detection failure, this dataset's recording position contains three posibilities: $+45,\ 0,\ -45$ degrees from vertial.
+   \textbf{Camera Position} As variations in position may lead to keyboard detection failure, this dataset's recording position contains three posibilities: $+45,\ 0,\ -45$ degrees from vertial.
 
-   \textit{Pianists} This dataset includes $14$ different players with different hand sizes, playing styles and skin colors, which will increase robustness of the model.
+   \textbf{Pianists} This dataset includes $14$ different players with different hand sizes, playing styles and skin colors, which will increase robustness of the model.
 
-   \textit{Positive and Negative Examples} This dataset also include both positive and negative examples, where negative stands for moving the hands over the keyboard without pressing any key.
+   \textbf{Positive and Negative Examples} This dataset also include both positive and negative examples, where negative stands for moving the hands over the keyboard without pressing any key.\\
    
-   In this particular part of dataset, there is $71$ recorded videos and $70540$ frams in total. And we extracted about $600000$ white keys and $400000$ black keys from it. 
+   \begin{minipage}{0.9\linewidth}
+      \centering
+   \begin{tabular}{ccc}
+      \toprule
+      \# of Frames&\# of Black&\# of White\\
+      \midrule
+      70540&\sim600000&\sim400000\\
+      \bottomrule
+      \end{tabular}
+      \captionof{table}{Stats of Previous Dataset} \label{tab:prevdataset} 
+   \end{minipage}
+      
+   \subsubsection{Our New Dataset}
 
    However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
+   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
 
-   \textit{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
-   In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.
+   \textbf{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
+   In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.\\
 
-   In our dataset, there're $22266$ frames in total, with $14536$ black key-press and $27843$ white key-press recorded.
+   \begin{minipage}{0.9\linewidth}
+      \centering
+   \begin{tabular}{ccc}
+      \toprule
+      \# of Frames&\# of Black&\# of White\\
+      \midrule
+      22266&14536&\sim27843\\
+      \bottomrule
+      \end{tabular}
+      \captionof{table}{Stats of Our Dataset} \label{tab:ourdataset} 
+   \end{minipage}
 
 \subsection{Dataset Preprocessing}
 
@@ -359,7 +385,7 @@ In our experiments, this approach outperforms the single key splitting approach 
    
    \subsubsection{LSTM Architecture}
 
-   In the sense of that velocity is related to the keypress depth change, which is also an important feature to determine whether a key is pressed, we used a CNN model pretrained in keypress detection \ref{keypressdetection} as the feature extractor for each input image. Then a sequence of feature tensors will be fed into a two-layer LSTM network with hidden size of 256, generating a single logit value.
+   In the sense of that velocity is related to how fast the keypress depth changes, which is also an important feature to determine whether a key is pressed, we used a CNN model pretrained in keypress detection \ref{keypressdetection} as the feature extractor for each input image. Then a sequence of feature tensors will be fed into a two-layer LSTM network with hidden size of 256, generating a single logit value.
    
    \[Velocity = Sigmoid(logit) * 127\]
    
