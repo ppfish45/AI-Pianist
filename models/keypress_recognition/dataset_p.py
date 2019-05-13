@@ -311,7 +311,7 @@ def seperate(spliter, color, size, concatenate=False, delta=3):
         for i, p in enumerate(X_path[name]):
             white_tmp_mask = None
             black_tmp_mask = None
-            if random.random() > 1:
+            if random.random() > 0.005:
                 white_tmp_mask, black_tmp_mask = get_masks(y_org[name][i])
             else:
                 white_tmp_mask = np.arange(52)
