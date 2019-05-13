@@ -6,6 +6,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{subcaption}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 % Include other packages here, before hyperref.
 
@@ -21,7 +24,7 @@
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
 %\ifcvprfinal\pagestyle{empty}\fi
-\setcounter{page}{4321}
+\setcounter{page}{1}
 \begin{document}
 
 %%%%%%%%% TITLE
@@ -42,392 +45,373 @@ HUANG Zeyu\\
 
 \maketitle
 
+% Todo: Velocity Evaluation & Results
+%
+
 %%%%%%%%% ABSTRACT
 \begin{abstract}
    It is noticed that human playing the piano effectively generates a series of well-patterned actions, i.e. the position of hands and the keys and the depth of keys being pressed down. 
    The notes that the piano generates strongly obey to this visual pattern. 
    Hence, it becomes reasonable to recognize the visual patterns from piano-playing videos and reproduce the instrumental sounds using machine learning.
-   In this project, we are going to propose a deep learning approach to effectively recognize human hand
+   In this project, we are going to propose a deep learning approach to effectively recognize key-press gestures and produce corresponding audios afterwards.
+   
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
+\label{Introduction}
+   The production and consumption of digital music and video are thriving in recent years, and related researches in music and video recognition have become rather important in related fields.
+   Among these fields, one important problem is how to construct mapping from videos to songs, which is possible because the visual representation is a vital aspect of musics.
+   To be more specific, how to conduct the conversion from video information to symbolic notation such as music scores or Musical Instrument Digital Interface (MIDI) file.
+   This problem is quite realistic for music lovers as it is hard to replay a music video without music transcription support.
+   
+   Our target is to generate music transcription and corresponding audio from piano-playing videos without any sound information.
+   Previous works have been done towards this problem by implementing traditional computer vision methods for this task.
+   However, evaluation results show that these methods are either not accurate or easy to be influenced by environmental conditions.
+   So in this report, we propose a more robust solution for piano video recognition and music re-generation.
 
-Please follow the steps outlined below when submitting your manuscript to
-the IEEE Computer Society Press.  This style guide now has several
-important modifications (for example, you are no longer warned against the
-use of sticky tape to attach your artwork to the paper), so all authors
-should read this new version.
+   % To specify the problem, we introduce the following notations:
 
-%-------------------------------------------------------------------------
-\subsection{Language}
+   % Given a muted piano playing video $\vec{V}$ where the whole keyboard should be in the screen and each key can be seen clearly.
+   % Our task is to figure out the black note set $T_i^B$ and the white note set $T_i^W$ which are played at specific frame $F_i$ extracted from $\vec{V}$ and concatenate the notes together to regenerate the piano sound for this video.
+   % The note set $T$ should contain the key-pressed information as well as velocity information.
+   
+   To accomplish this task, we divide it into three stages.
 
-All manuscripts must be in English.
+   \textbf{1) Keyboard Extraction}
+   As the keyboard's location differs in different videos, the first step is to develop a method extracting the whole keyboard from the background and conduct rectification on it. 
+   The extracted keyboard will be fed into the second step.
 
-\subsection{Dual submission}
+   \textbf{2) Keypress Recognition}
+   After the keyboard area is extracted, our core task is to recognize finger-key correspondence and determine whether the keys are pressed or not. 
+   To finish this recognition, we need to focus on the piano keys' arrangement pattern as well as the illumination circumstance.
+   However, since there are often reflections, shadows and other visual noises cast on the keyboard, it is rather difficult to develop an algorithm based on traditional computer vision method.
+   Therefore, a robust algorithm is required.
 
-Please refer to the author guidelines on the CVPR 2015 web page for a
-discussion of the policy on dual submissions.
+   \textbf{3) Velocity Evaluation}
+   The velocity information is essential in audio emotion expression. 
+   With a high velocity value, the song conveys stronger feelings, and vice versa. 
+   Since the velocity is a kind of dynamic information, our algorithm need to analyze several neighbor frames simutaneously in order to get the estimation.
 
-\subsection{Paper length}
-For CVPR 2015, the rules about paper length have changed, so please
-read this section carefully. Papers, excluding the references section,
-must be no longer than eight pages in length. The references section
-will not be included in the page count, and there is no limit on the
-length of the references section. For example, a paper of eight pages
-with two pages of references would have a total length of 10 pages.
-{\bf Unlike previous years, there will be no extra page charges for
-  CVPR 2015.}
+   We have developed methods to solve these three parts and received a quite good result. 
+   For the \textit{Task 1}, we've tried both traditional computer vision methods and deep learning methods, finally determined to use the \textit{SIFT} method \cite{SIFT} to achieve a better outcome.
+   About the \textit{Task 2}, we trained two different neural network models for black and white key-press detection. 
+   Both neural network models adopt VGG-like structure\cite{VGG} with two or three layers structure as the key size is rather small for deeper convolutional neural network to learn.
+   And lastly for the \textit{Task 3}, we use the LSTM structure \cite{LSTM} and feed in neighbor frames of a video to perceive the change of the keypress as well as the velocity.
 
-Overlength papers will simply not be reviewed.  This includes papers
-where the margins and formatting are deemed to have been significantly
-altered from those laid down by this style guide.  Note that this
-\LaTeX\ guide already sets figure captions and references in a smaller font.
-The reason such papers will not be reviewed is that there is no provision for
-supervised revisions of manuscripts.  The reviewing process cannot determine
-the suitability of the paper for presentation in eight pages if it is
-reviewed in eleven.  
+   Currently, our recognition result is quite acceptable. For the keypress recognition accuracy, i.e. the music score generation, is about \(75\%\), which is notably better than traditional computer vision methods with accuracy around \(50\%\).
+   And about the velocity detection, there is also a satisfactory result as the listeners can sense some emotion which is similar as the original song conveys.
+   Furthermore, to get higher robustness, we've record our own dataset in addition to adopted dataset from previous researches in order to increase diversity of environmental conditions. 
+   
+%------------------------------------------------------------------------
+\section{Related Work}
+   Previous works have been done in related area and some of them are targeting at this specific problem. In this section we will give brief introduction for them and discuss their strengths and drawbacks.
 
-%-------------------------------------------------------------------------
-\subsection{The ruler}
-The \LaTeX\ style defines a printed ruler which should be present in the
-version submitted for review.  The ruler is provided in order that
-reviewers may comment on particular lines in the paper without
-circumlocution.  If you are preparing a document using a non-\LaTeX\
-document preparation system, please arrange for an equivalent ruler to
-appear on the final output pages.  The presence or absence of the ruler
-should not change the appearance of any other content on the page.  The
-camera ready copy should not contain a ruler. (\LaTeX\ users may uncomment
-the \verb'\cvprfinalcopy' command in the document preamble.)  Reviewers:
-note that the ruler measurements do not align well with lines in the paper
---- this turns out to be very difficult to do well when the paper contains
-many figures and equations, and, when done, looks ugly.  Just use fractional
-references (e.g.\ this line is $095.5$), although in most cases one would
-expect that the approximate location will be adequate.
+   One previous solution was proposed in Gorodnichy and Yogeswaran's paper \cite{gorodnichy2006detection} where traditional computer vision method is utilized to complete the keyboard and hand extraction as well as the gesture recognition tasks.
+   Detaily, this solution divides the problem into three parts: Keyboard image detection, Hand detection and Finger detection. 
+   It compute the keyboard boundary according to the assumption that white keys are surrounded by nonwhite areas, i.e. the division algorithm is based on the contrast information.
+   And for the hand and finger detection, it utilized the background subtraction method and crevice-detection method.
+   This solution achieved this task only with traditional computer vision methods, whose cost is lower than neural network model as the latter one needs large dataset and training.
+   However, these methods required a frame where there are no hands on the keyboard because the flood fill algorithm will fail if there is a hand involving in.
+   Also, since illumination conditions may differ, this traditional computer vision method doesn't perform quite well under different circumstances.
 
-\subsection{Mathematics}
+   Another solution towards this problem was proposed by Akbari et al. \cite{Akbari} 
+   They proposed a system of automatically annotating piano-playing video using convolutional neural networks (CNNs) and two separate binary support vector machines (SVMs).
+   Though a high accuracy has been achieved in keyboard and hand detection, this solution tackles issues according to some artiﬁcially formulated rules related to the visual nature of the piano keyboard, which is hard to prove its correctness in most cases.
+   Also, since it applies CNN method in all stages of the problem, the computational cost is rather high, which is unavoidable.
 
-Please number all of your sections and displayed equations.  It is
-important for readers to be able to refer to any particular equation.  Just
-because you didn't refer to it in the text doesn't mean some future reader
-might not need to refer to it.  It is cumbersome to have to use
-circumlocutions like ``the equation second from the top of page 3 column
-1''.  (Note that the ruler will not be present in the final copy, so is not
-an alternative to equation numbers).  All authors will benefit from reading
-Mermin's description of how to write mathematics:
-\url{http://www.pamitc.org/documents/mermin.pdf}.
+%------------------------------------------------------------------------
+\section{Dataset}
 
+   In this section, we will talk about our dataset source and pre-processing.
 
-\subsection{Blind review}
+   We adopt our dataset mainly from two sources: modified from the dataset that was been used in previous work done by Akbari \cite{Akbari}; our own record.
+   Both datasets are formed by two parts: muted piano-playing videos and corresponding MIDI file, where contains all the pitch and velocity information.
 
-Many authors misunderstand the concept of anonymizing for blind
-review.  Blind review does not mean that one must remove
-citations to one's own work---in fact it is often impossible to
-review a paper unless the previous citations are known and
-available.
+\subsection{Dataset Source}
+   First part of our dataset is obtained from a previous research \cite{Akbari}. It consists of piano playing videos captured in different situations which may lead to enhancement of model's strength:
 
-Blind review means that you do not use the words ``my'' or ``our''
-when citing previous work.  That is all.  (But see below for
-techreports.)
+   \textit{Camera Position} As variations in position may lead to keyboard detection failure, this dataset's recording position contains three posibilities: $+45,\ 0,\ -45$ degrees from vertial.
 
-Saying ``this builds on the work of Lucy Smith [1]'' does not say
-that you are Lucy Smith; it says that you are building on her
-work.  If you are Smith and Jones, do not say ``as we show in
-[7]'', say ``as Smith and Jones show in [7]'' and at the end of the
-paper, include reference 7 as you would any other cited work.
+   \textit{Pianists} This dataset includes $14$ different players with different hand sizes, playing styles and skin colors, which will increase robustness of the model.
 
-An example of a bad paper just asking to be rejected:
-\begin{quote}
-\begin{center}
-    An analysis of the frobnicatable foo filter.
-\end{center}
+   \textit{Positive and Negative Examples} This dataset also include both positive and negative examples, where negative stands for moving the hands over the keyboard without pressing any key.
+   
+   In this particular part of dataset, there is $71$ recorded videos and $70540$ frams in total. And we extracted about $600000$ white keys and $400000$ black keys from it. 
 
-   In this paper we present a performance analysis of our
-   previous paper [1], and show it to be inferior to all
-   previously known methods.  Why the previous paper was
-   accepted without this analysis is beyond me.
+   However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
+   Despite of velocity information, our dataset also has the following several features:
 
-   [1] Removed for blind review
-\end{quote}
+   \textit{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
 
+   \textit{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
+   In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.
 
-An example of an acceptable paper:
+   In our dataset, there're $22266$ frames in total, with $14536$ black key-press and $27843$ white key-press recorded.
 
-\begin{quote}
-\begin{center}
-     An analysis of the frobnicatable foo filter.
-\end{center}
+\subsection{Dataset Preprocessing}
 
-   In this paper we present a performance analysis of the
-   paper of Smith \etal [1], and show it to be inferior to
-   all previously known methods.  Why the previous paper
-   was accepted without this analysis is beyond me.
+\subsubsection{Conversion from/to MIDI format}
 
-   [1] Smith, L and Jones, C. ``The frobnicatable foo
-   filter, a fundamental contribution to human knowledge''.
-   Nature 381(12), 1-213.
-\end{quote}
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. 
+Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
 
-If you are making a submission to another conference at the same time,
-which covers similar or overlapping material, you may need to refer to that
-submission in order to explain the differences, just as you would if you
-had previously published related work.  In such cases, include the
-anonymized parallel submission~\cite{Authors14} as additional material and
-cite it as
-\begin{quote}
-[1] Authors. ``The frobnicatable foo filter'', F\&G 2014 Submission ID 324,
-Supplied as additional material {\tt fg324.pdf}.
-\end{quote}
+The output of our method is a matrix of similar shape. 
+The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
 
-Finally, you may feel you need to tell the reader that more details can be
-found elsewhere, and refer them to a technical report.  For conference
-submissions, the paper must stand on its own, and not {\em require} the
-reviewer to go to a techreport for further details.  Thus, you may say in
-the body of the paper ``further details may be found
-in~\cite{Authors14b}''.  Then submit the techreport as additional material.
-Again, you may not assume the reviewers will read this material. 
+% \subsubsection{Splitting keys}
 
-Sometimes your paper is about a problem which you tested using a tool which
-is widely known to be restricted to a single institution.  For example,
-let's say it's 1969, you have solved a key problem on the Apollo lander,
-and you believe that the CVPR70 audience would like to hear about your
-solution.  The work is a development of your celebrated 1968 paper entitled
-``Zero-g frobnication: How being the only people in the world with access to
-the Apollo lander source code makes us a wow at parties'', by Zeus \etal.
+% To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
 
-You can handle this paper like any other.  Don't write ``We show how to
-improve our previous work [Anonymous, 1968].  This time we tested the
-algorithm on a lunar lander [name of lander removed for blind review]''.
-That would be silly, and would immediately identify the authors. Instead
-write the following:
-\begin{quotation}
-\noindent
-   We describe a system for zero-g frobnication.  This
-   system is new because it handles the following cases:
-   A, B.  Previous systems [Zeus et al. 1968] didn't
-   handle case B properly.  Ours handles it by including
-   a foo term in the bar integral.
+% We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
 
-   ...
+\subsubsection{Forward/backward difference of frames}
 
-   The proposed system was integrated with the Apollo
-   lunar lander, and went all the way to the moon, don't
-   you know.  It displayed the following behaviours
-   which show how well we solved cases A and B: ...
-\end{quotation}
-As you can see, the above text follows standard scientific convention,
-reads better than the first version, and does not explicitly name you as
-the authors.  A reviewer might think it likely that the new paper was
-written by Zeus \etal, but cannot make any decision based on that guess.
-He or she would have to be sure that no other authors could have been
-contracted to solve problem B.
+For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). 
+Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. 
 
-FAQ: Are acknowledgements OK?  No.  Leave them for the final copy.
+For a more clear formulation, denote the $i$-th frame of the video as $F_i$ and corresponding output is $F'_i$, then 
+$$F'_i = F_i\oplus(F_i-F_{i-1})\oplus(F_{i+1}-F_i)$$
 
 
-\begin{figure}[t]
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
-   %\includegraphics[width=0.8\linewidth]{egfigure.eps}
-\end{center}
-   \caption{Example of caption.  It is set in Roman so that mathematics
-   (always set in Roman: $B \sin A = A \sin B$) may be included without an
-   ugly clash.}
-\label{fig:long}
-\label{fig:onecol}
+% In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
+
+\section{Methods}
+
+In this section we will talk about methods tried and their pros and cons. 
+As discussed in Section \ref{Introduction}, we divide this problem into three stages, keyboard detection, keypress recognition and velocity evaluation.
+
+\subsection{Keyboard Detection}
+\label{Keyboard}
+
+Towards the keyboard detection problem, we've tried three methods. 
+
+\subsubsection{Hough Line Detection}
+Firstly, we adopted a traditional computer vision method `Hough Line Detection', which is shown in Figure \ref{fig:1}. 
+% It first conduct Gaussian Blurring on the picture in order to avoid noise for edge detection. 
+% Then the result will be fed into the Canny Edge Detector \cite{Canny}.
+Firstly, we can obtain the edge information of the picture by conducting Gaussian Blurring and Canny Edge Detection on it.
+Next, we apply Hough Line Transformation \cite{Hough} on the preprocessed picture to detect boundary lines candidates. 
+And since there'll be several repeated boundary line detected, we prune those repeated lines according to their slopes and positions.
+% , and from here we will get 3 to 5 boundary candidates.
+Finally, we determine the exact two parallel lines that bound the keyboard by examining the black and white pixel location pattern. 
+% That is, if we denote the distance between two boundary lines as $d$, then we select two lines to be boundary lines when the average pixel value in the upper \(\frac{2}{3}d\) is darker than that in the lower \(\frac{1}{3}d\).
+
+\begin{figure}[h!]
+      % \begin{subfigure}{0.23\textwidth}
+      %   \includegraphics[width=\linewidth]{fig/1.jpg}
+      %   \caption{Grayscaled Original Image} \label{fig:a}
+      % \end{subfigure}\hspace*{\fill}
+      \begin{subfigure}{0.23\textwidth}
+        \includegraphics[width=\linewidth]{fig/3.jpg}
+        \caption{Gaussian Blurred Image} \label{fig:b}
+      \end{subfigure}\hspace*{\fill}
+      % \medskip
+      \begin{subfigure}{0.23\textwidth}
+        \includegraphics[width=\linewidth]{fig/4.jpg}
+        \caption{Canny Edge Detection} \label{fig:c}
+      \end{subfigure}
+      \begin{subfigure}{0.23\textwidth}
+        \includegraphics[width=\linewidth]{fig/5.jpg}
+        \caption{Hough Line Transformation} \label{fig:d}
+      \end{subfigure}\hspace*{\fill}
+      % \medskip
+      % \hspace{2.1cm}
+      \begin{subfigure}{0.23\textwidth}
+        \includegraphics[width=\linewidth]{fig/6.jpg}
+        \caption{Prune Repeated Lines} \label{fig:e}
+      \end{subfigure}
+      
+      \caption{Hough Line Detection Method} \label{fig:1}
 \end{figure}
 
-\subsection{Miscellaneous}
+However, this method has some major drawbacks. 
+For one, the computational complexity of Hough Line Transformation is $O(n^3)$, where $n$ is the number of pixels. 
+So the computation is quite expensive.
+% Also, to achieve high accuracy, hyperparameters of Canny Edge Detector and Hough Line Transform varies a lot under different illumination circumstances.
+% This leads to unstable detection performance.
+In addition, to complete such detection, a frame without hand on the keyboard is needed, which is unobtainable for some videos.
+Therefore, we resort to the second choice, using Deep Convolutional Neural Network.
 
-\noindent
-Compare the following:\\
-\begin{tabular}{ll}
- \verb'$conf_a$' &  $conf_a$ \\
- \verb'$\mathit{conf}_a$' & $\mathit{conf}_a$
-\end{tabular}\\
-See The \TeX book, p165.
+\subsubsection{CNN Detection}
 
-The space after \eg, meaning ``for example'', should not be a
-sentence-ending space. So \eg is correct, {\em e.g.} is not.  The provided
-\verb'\eg' macro takes care of this.
+We next tried Convolutional Neural Network to detect the keyboard location. 
+As the dataset doesn't offer us information about the exact location of keyboard, we manually labelled coordinates of the keyboard and feed them into a pre-trained ResNet-18 \cite{resnet} model for coordinate regression.
 
-When citing a multi-author paper, you may save space by using ``et alia'',
-shortened to ``\etal'' (not ``{\em et.\ al.}'' as ``{\em et}'' is a complete word.)
-However, use it only when there are three or more authors.  Thus, the
-following is correct: ``
-   Frobnication has been trendy lately.
-   It was introduced by Alpher~\cite{Alpher02}, and subsequently developed by
-   Alpher and Fotheringham-Smythe~\cite{Alpher03}, and Alpher \etal~\cite{Alpher04}.''
+\begin{figure}[h!]
+   \centering
+   \begin{subfigure}{0.25\textwidth}
+      \includegraphics[width=\linewidth]{fig/8.png}
+      \caption{Failure Example of CNN} \label{fig:f}
+    \end{subfigure}
+    \begin{subfigure}{0.30\textwidth}
+      \includegraphics[width=\linewidth]{fig/9.jpg}
+      \caption{SIFT Result} \label{fig:g}
+    \end{subfigure}
+   \caption{Comparison between CNN and SIFT} \label{fig:2}
+\end{figure}
 
-This is incorrect: ``... subsequently developed by Alpher \etal~\cite{Alpher03} ...''
-because reference~\cite{Alpher03} has just two authors.  If you use the
-\verb'\etal' macro provided, then you need not worry about double periods
-when used at the end of a sentence as in Alpher \etal.
+However, since the dataset is highly homogeneous because they are extracted from 71 videos, the model tends to build a mapping between image features to 71 fixed coordinate sets, which made the model’s performance on test set quite undesirable.
+A failure example is shown in Figure \ref{fig:f}
 
-For this citation style, keep multiple citations in numerical (not
-chronological) order, so prefer \cite{Alpher03,Alpher02,Authors14} to
-\cite{Alpher02,Alpher03,Authors14}.
+We therefore turn to our third choice, the SIFT method.
 
+\subsubsection{SIFT Detection}
 
-\begin{figure*}
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{.9\linewidth}{0pt}}
-\end{center}
-   \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
-\end{figure*}
+Our finalized solution on this task is Scale Invariant Feature Transform (SIFT) \cite{SIFT}.
 
-%------------------------------------------------------------------------
-\section{Formatting your paper}
+For each image in the dataset, we extract SIFT descriptors \(V_i^{1\times128}\) \((i=0,1,2,3)\) for pixel patches containing the four keyboard corners in each image using the coordinates we've labelled in the previous method.
 
-All text must be in a two-column format. The total allowable width of the
-text area is $6\frac78$ inches (17.5 cm) wide by $8\frac78$ inches (22.54
-cm) high. Columns are to be $3\frac14$ inches (8.25 cm) wide, with a
-$\frac{5}{16}$ inch (0.8 cm) space between them. The main title (on the
-first page) should begin 1.0 inch (2.54 cm) from the top edge of the
-page. The second and following pages should begin 1.0 inch (2.54 cm) from
-the top edge. On all pages, the bottom margin should be 1-1/8 inches (2.86
-cm) from the bottom edge of the page for $8.5 \times 11$-inch paper; for A4
-paper, approximately 1-5/8 inches (4.13 cm) from the bottom edge of the
-page.
+In test time, we derive the four keyboard corners by finding the point whose SIFT descriptors are most similar to the ground truths, i.e.
+$$P_i^* =\argmin_P\sum_{k=0}^{64}{\sqrt{\sum_{j=0}^{128}(V_j^P-V_{ij}^k)^2}}$$
 
-%-------------------------------------------------------------------------
-\subsection{Margins and page numbering}
+The result shows that this method is quite robust and accurate in determining the keyboard location.
+Under most circumstances, the method can extract the keyboard correctly and entirely.
+A comparison example is shown in Figure \ref{fig:2}
 
-All printed material, including text, illustrations, and charts, must be kept
-within a print area 6-7/8 inches (17.5 cm) wide by 8-7/8 inches (22.54 cm)
-high.
-Page numbers should be in footer with page numbers, centered and .75
-inches from the bottom of the page and make it start at the correct page
-number rather than the 4321 in the example.  To do this fine the line (around
-line 23)
-\begin{verbatim}
-%\ifcvprfinal\pagestyle{empty}\fi
-\setcounter{page}{4321}
-\end{verbatim}
-where the number 4321 is your assigned starting page.
+\subsection{Keypress Recognition}
 
-Make sure the first page is numbered by commenting out the first page being
-empty on line 46
-\begin{verbatim}
-%\thispagestyle{empty}
-\end{verbatim}
+Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it.
+In the following discussion, we will develop CNN models to conduct keypress recognition. 
+Before going into different data-processing methods, we first talk about common loss function for the following networks.
 
+\subsubsection{Loss Function}
+The loss function we used is \textbf{Binary Cross Entropy Loss}, which can be described as following:
+\begin{align*}
+   w^*=&\argmin_w-\sum[y_i\log{w(x_i,\theta)} \\
+      &+(1-y_i)\log(1-\log{w(x_i,\theta)})]+\lambda||w||_2
+\end{align*}
 
-%-------------------------------------------------------------------------
-\subsection{Type-style and fonts}
+The reason why we adopt this loss function is that we are targeting at a binary labelling problem.
+That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ and $y_n\in\{0,1\}$, and data pairs are independent with each other.
+After defining our loss function, our next step is to process the data and set up the network model.
 
-Wherever Times is specified, Times Roman may also be used. If neither is
-available on your word processor, please use the font closest in
-appearance to Times to which you have access.
+\begin{figure}[h!]
+   \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.26\linewidth]{fig/15.png}
+      \caption{Single Key Split} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.4\linewidth]{fig/14.png}
+      \caption{Key Bundling} \label{fig:l}
+    \end{subfigure}
+   \caption{Comparison between two splitting modes} \label{fig:4}
+\end{figure}   
 
-MAIN TITLE. Center the title 1-3/8 inches (3.49 cm) from the top edge of
-the first page. The title should be in Times 14-point, boldface type.
-Capitalize the first letter of nouns, pronouns, verbs, adjectives, and
-adverbs; do not capitalize articles, coordinate conjunctions, or
-prepositions (unless the title begins with such a word). Leave two blank
-lines after the title.
+\subsubsection{Whole Keyboard Detection}
+\label{Keypress-keyboard}
 
-AUTHOR NAME(s) and AFFILIATION(s) are to be centered beneath the title
-and printed in Times 12-point, non-boldface type. This information is to
-be followed by two blank lines.
+   Our first attempt is to put the whole keyboard and corresponding frame note label into the neural network, trying to recognize both the pressing pattern as well as key location by one network.
+   We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
+   Our set our CNN structure to be VGG-like, the design is shown in the Figure \ref{fig:h}
 
-The ABSTRACT and MAIN TEXT are to be in a two-column format.
+   Since this method doesn't require any data preprocessing on the derived data from Task \ref{Keyboard}, it is quite easy to prepare data.
+   However, it's noticed that in our train set, some keys are frequently pressed while some are pressed rarely.
+   This kind of keypress inbalance leads to weakness in the detection.
+   Also, as hands are comparatively small than the whole keyboard, the network tends to focus on other factors such as illumination circumstance instead of little hand movement, which lower down the recognition accuracy.
 
-MAIN TEXT. Type main text in 10-point Times, single-spaced. Do NOT use
-double-spacing. All paragraphs should be indented 1 pica (approx. 1/6
-inch or 0.422 cm). Make sure your text is fully justified---that is,
-flush left and flush right. Please do not place any additional blank
-lines between paragraphs.
+   Due to the above drawbacks, the network's recognition accuracy is not quite good. Therefore we tried the idea of splitting all the keys and recognize them respectively.
 
-Figure and table captions should be 9-point Roman type as in
-Figures~\ref{fig:onecol} and~\ref{fig:short}.  Short captions should be centred.
+   \begin{figure}[h!]
+      \centering
+      \begin{subfigure}{0.4\textwidth}
+         \includegraphics[width=\linewidth]{fig/10.png}
+         \caption{CNN for Whole Keyboard Detection} \label{fig:h}
+       \end{subfigure}
+       \begin{subfigure}{0.4\textwidth}
+         \includegraphics[width=\linewidth]{fig/11.png}
+         \caption{CNN for Key Splitting} \label{fig:i}
+       \end{subfigure}
+       \begin{subfigure}{0.4\textwidth}
+         \includegraphics[width=\linewidth]{fig/12.png}
+         \caption{CNN for Key Bundling} \label{fig:j}
+       \end{subfigure}
+      \caption{CNN structures for Keypress Recognition} \label{fig:3}
+   \end{figure}
 
-\noindent Callouts should be 9-point Helvetica, non-boldface type.
-Initially capitalize only the first word of section titles and first-,
-second-, and third-order headings.
+\subsubsection{Single Key Splitting}
 
-FIRST-ORDER HEADINGS. (For example, {\large \bf 1. Introduction})
-should be Times 12-point boldface, initially capitalized, flush left,
-with one blank line before, and one blank line after.
+   Our next attempt is to split the keyboard into keys and train a neural network to identify whether the specific key is pressed or not. 
+   Since the input dimension and information contained are less than the previous one, we constructed a neural network which has fewer layers than the whole keyboard detection model.
+   The model structure is shown in Figure \ref{fig:i}
 
-SECOND-ORDER HEADINGS. (For example, { \bf 1.1. Database elements})
-should be Times 11-point boldface, initially capitalized, flush left,
-with one blank line before, and one after. If you require a third-order
-heading (we discourage it), use 10-point Times, boldface, initially
-capitalized, flush left, preceded by one blank line, followed by a period
-and your text on the same line.
+   This model works quite well on our dataset, and achieves higher accuracy than the previous mehthod as data partition becomes finer.
+   And the inbalance problem mentioned in Section \ref{Keypress-keyboard} won't affect the recognition any longer.
 
-%-------------------------------------------------------------------------
-\subsection{Footnotes}
+   However, we noticed that the single key extraction may lose some information on key-pressing as neighbor keys can become comparison to the selected key.
+   Also, hand gesture could be shown more clearly with neighbor keys included.
+   Therefore, to achieve better accuracy, we consider to bundle nearby keys and feed it into the neural network.
 
-Please use footnotes\footnote {This is what a footnote looks like.  It
-often distracts the reader from the main flow of the argument.} sparingly.
-Indeed, try to avoid footnotes altogether and include necessary peripheral
-observations in
-the text (within parentheses, if you prefer, as in this sentence).  If you
-wish to use a footnote, place it at the bottom of the column on the page on
-which it is referenced. Use Times 8-point type, single-spaced.
+\subsubsection{Key Bundling}
 
+   Lastly, we bundle neighbor keys together to construct a new dataset. 
+   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1. (See Figure \ref{fig:4})
+   However, this is a hyperparameter and will be tuned during the experiment.
+   And as the image size becoming larger, we added two CONV layers and generated a new architecture, which is shown in Figure \ref{fig:j}.
 
-%-------------------------------------------------------------------------
-\subsection{References}
+   Comparing to the second method, it includes extra information about neighbor keys and hand motion surrounded without introducing the inbalance problem mentioned in Section \ref{Keypress-keyboard}.
+   With respect to the experiment result, its accuracy indeed becomes higher and even exceeds best current result.
 
-List and number all bibliographical references in 9-point Times,
-single-spaced, at the end of your paper. When referenced in the text,
-enclose the citation number in square brackets, for
-example~\cite{Authors14}.  Where appropriate, include the name(s) of
-editors of referenced books.
+\subsection{Velocity Evaluation}
 
-\begin{table}
-\begin{center}
-\begin{tabular}{|l|c|}
-\hline
-Method & Frobnability \\
-\hline\hline
-Theirs & Frumpy \\
-Yours & Frobbly \\
-Ours & Makes one's heart Frob\\
-\hline
-\end{tabular}
-\end{center}
-\caption{Results.   Ours is better.}
-\end{table}
+   Last part of our task is to evaluate the velocity of each keypress. 
+   In MIDI file, the velocity is recorded as an integer value ranges from $0$ to $127$. 
+   So our objective is to detect motion in neighbor frames and make a prediction on the velocity value of that key press.
+   
+   Since the prediction is related to several consecutive frames which requires sequence learning technique, we therefore choose the LSTM structure for this task. (See Figure \ref{fig:5}) 
 
-%-------------------------------------------------------------------------
-\subsection{Illustrations, graphs, and photographs}
+   \begin{figure}[h!]
+      \centering
+      \includegraphics[width=\linewidth]{fig/13.png}
+      \caption{LSTM Architecture for Velocity Evaluation} \label{fig:5}
+   \end{figure}
 
-All graphics should be centered.  Please ensure that any point you wish to
-make is resolvable in a printed copy of the paper.  Resize fonts in figures
-to match the font in the body text, and choose line widths which render
-effectively in print.  Many readers (and reviewers), even of an electronic
-copy, will choose to print your paper in order to read it.  You cannot
-insist that they do otherwise, and therefore must not assume that they can
-zoom in to see tiny details on a graphic.
+\section{Experiments}
 
-When placing figures in \LaTeX, it's almost always best to use
-\verb+\includegraphics+, and to specify the  figure width as a multiple of
-the line width as in the example below
-{\small\begin{verbatim}
-   \usepackage[dvips]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]
-                   {myfile.eps}
-\end{verbatim}
-}
+   In this section we will talk about our experiment settings including the hyperparameters, and our current results.
+
+\subsection{Hyperparameter Tuning}
+
+   On all models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
+   We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+
+\subsection{Evaluation Metrics}
+   The core task of our approach is keypress recognition which is a binary classification task.
+   Therefore, to evaluate our keypress recognition performance, instead of only utilizing the standard accuracy metric, we introduce two finer criterion: \textit{Precision} and \textit{Recall}.
+   Precision represents the proportion of positive identification correctness while Recall represents the negative identification correct rate, i.e.
+   \begin{align*}
+      Precision &= \dfrac{TP}{TP+FP}\\
+      Recall &= \dfrac{TP}{TP+FN}
+   \end{align*}
+   where $TP$ is True Positive, $FP$ stands for False Positive and $FN$ represents False Negative.
+
+   To fully evaluate the effectiveness of a model, we must examine both precision and recall.
+   However, precision and recall are often in tension. That is, improve precision will always deduct recall rate.
+   So, in order to balance these two values and get an overall accuracy judgement, we introduce a new metric:
+   $$\textit{F-Score} = (1+\beta^2)\cdot\dfrac{Precision\cdot Recall}{\beta^2\cdot Precision + Recall}$$
+   where $\beta$ represents the ratio of Recall weight and Precision weight.
+   In our experiment we use \textit{F1-Score} to describe the recognition performance.
+
+\subsection{Results}
+
+We have reached \(95\%+\) accuracy on both black keys and white keys. 
+And both Single and Bundle case splitting achieves quite good results.
+The details are listed below
 
 
-%-------------------------------------------------------------------------
-\subsection{Color}
+Demo Video
 
-Please refer to the author guidelines on the CVPR 2015 web page for a discussion
-of the use of color in your document.
+\section{Conclusion and Future Work}
 
-%------------------------------------------------------------------------
-\section{Final copy}
+In this paper, we've introduced a method to tackle the audio generation problem and achieves quite good performance.
+Through our method, we could get the music score from a muted piano-playing video with a high accuracy.
+And by this music score as well as the velocity information predicted, we are able to re-generate the audio with emotion.
+Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under different circumstances.
 
-You must include your signed IEEE copyright release form when you submit
-your finished paper. We MUST have this form before your paper can be
-published in the proceedings.
+In the future, we plan to refine our velocity evaluation structure to achieve a better and more stable prediction result.
+Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
 
 
 {\small
