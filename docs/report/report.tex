@@ -117,7 +117,7 @@ HUANG Zeyu\\
 
    Another solution towards this problem was proposed by Akbari et al. \cite{Akbari} 
    They proposed a system of automatically annotating piano-playing video using convolutional neural networks (CNNs) and two separate binary support vector machines (SVMs).
-   Though a high accuracy has been achieved in keyboard and hand detection, this solution tackles issues according to some artiﬁcially formulated rules related to the visual nature of the piano keyboard, which is hard to prove its correctness in most cases.
+   Though a high accuracy has been achieved in keyboard and hand detection, this solution tackles issues according to some artificially formulated rules related to the visual nature of the piano keyboard, which is hard to prove its correctness in most cases.
    Also, since it applies CNN method in all stages of the problem, the computational cost is rather high, which is unavoidable.
 
 %------------------------------------------------------------------------
@@ -158,12 +158,6 @@ Then, we generates a \(N \times 88\) label for each video file recording the sta
 
 The output of our method is a matrix of similar shape. 
 The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
-
-% \subsubsection{Splitting keys}
-
-% To help direct the model's attention, we split the input image into 88 segments, each containing one piano key object at the center as our training target. Each white key is located by dividing a image into 52 pieces along the x-axis. Each black key is located using traditional cv algorithms. Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. Finally, we add some ``tolerance'' by widening the cropped area by 4-6 pixels on its left and right sides to avoid excessive loss of information during the cropping. 
-
-% We also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to the width of the centered piano key itself. We will produce images of three keys when the centered key is our training target. This method introduces more information yet more interference.
 
 \subsubsection{Forward/backward difference of frames}
 
@@ -271,9 +265,7 @@ A comparison example is shown in Figure \ref{fig:2}
 
 \subsection{Keypress Recognition} \label{keypressdetection}
 
-Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it.
-In the following discussion, we will develop CNN models to conduct keypress recognition. 
-Before going into different data-processing methods, we first talk about common loss function for the following networks.
+Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it. We will develop CNN models to accomplish this task.
 
 \subsubsection{Loss Function}
 The loss function we used is \textbf{Binary Cross Entropy Loss}, which can be described as following:
@@ -282,37 +274,22 @@ The loss function we used is \textbf{Binary Cross Entropy Loss}, which can be de
       &+(1-y_i)\log(1-\log{w(x_i,\theta)})]+\lambda||w||_2
 \end{align*}
 
-The reason why we adopt this loss function is that we are targeting at a binary labelling problem.
-That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ and $y_n\in\{0,1\}$, and data pairs are independent with each other.
+The reason is that we are targeting at a binary labelling problem.
+That is, our dataset $D = \{(x_1, y_1), (x_2, y_2), \cdots, (x_n, y_n)\}$ where $x_n\in\mathbb{R}^{C\times H\times W}$ is the images and $y_n\in\{0,1\}$ is the predicted probability of begin pressed, and data pairs are independent of each other.
 After defining our loss function, our next step is to process the data and set up the network model.
-
-\begin{figure}[h!]
-   \begin{subfigure}{0.2\textwidth}
-      \centering
-      \includegraphics[width=0.26\linewidth]{fig/15.png}
-      \caption{Single Key Split} \label{fig:k}
-    \end{subfigure}\hspace*{\fill}
-    \begin{subfigure}{0.2\textwidth}
-      \centering
-      \includegraphics[width=0.4\linewidth]{fig/14.png}
-      \caption{Key Bundling} \label{fig:l}
-    \end{subfigure}
-   \caption{Comparison between two splitting modes} \label{fig:4}
-\end{figure}   
 
 \subsubsection{Whole Keyboard Detection}
 \label{Keypress-keyboard}
 
    Our first attempt is to put the whole keyboard and corresponding frame note label into the neural network, trying to recognize both the pressing pattern as well as key location by one network.
    We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
-   Our set our CNN structure to be VGG-like, the design is shown in the Figure \ref{fig:h}
+   The set our CNN structure is VGG-like, and the design is shown in the Figure \ref{fig:h}.
 
-   Since this method doesn't require any data preprocessing on the derived data from Task \ref{Keyboard}, it is quite easy to prepare data.
-   However, it's noticed that in our train set, some keys are frequently pressed while some are pressed rarely.
-   This kind of keypress inbalance leads to weakness in the detection.
-   Also, as hands are comparatively small than the whole keyboard, the network tends to focus on other factors such as illumination circumstance instead of little hand movement, which lower down the recognition accuracy.
-
-   Due to the above drawbacks, the network's recognition accuracy is not quite good. Therefore we tried the idea of splitting all the keys and recognize them respectively.
+   This method doesn't require any further data processing on the data derived from Task \ref{Keyboard}.
+   However, we failed to obtain a good result with this approach. 
+   One major problem may be that in our training set, some keys are frequently pressed while some are rarely pressed.
+   This inbalance of frequency could provide the model with wrong attention.
+   Also, as hands are small compared to the whole keyboard, the network tends to focus on other factors such as illumination conditions instead of hand motions, which may lower the accuracy.
 
    \begin{figure}[h!]
       \centering
@@ -333,26 +310,44 @@ After defining our loss function, our next step is to process the data and set u
 
 \subsubsection{Single Key Splitting}
 
-   Our next attempt is to split the keyboard into keys and train a neural network to identify whether the specific key is pressed or not. 
-   Since the input dimension and information contained are less than the previous one, we constructed a neural network which has fewer layers than the whole keyboard detection model.
-   The model structure is shown in Figure \ref{fig:i}
+To help direct the model's attention, in our next attempt we split the input image into 88 segments, 
+each containing one piano key object at the center as our training target. 
+Each white key is located by dividing a image into 52 pieces along the x-axis. 
+Each black key is located using traditional cv algorithms. 
+Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. 
+Finally, we add some ``tolerance'' by widening the cropped area by 2-4 pixels on its left and right sides to avoid the cropping area being to tight. 
 
-   This model works quite well on our dataset, and achieves higher accuracy than the previous mehthod as data partition becomes finer.
-   And the inbalance problem mentioned in Section \ref{Keypress-keyboard} won't affect the recognition any longer.
+We have trained two models for black and white keys respectively, each of the same structure shown in \ref{fig:i}.
 
-   However, we noticed that the single key extraction may lose some information on key-pressing as neighbor keys can become comparison to the selected key.
-   Also, hand gesture could be shown more clearly with neighbor keys included.
-   Therefore, to achieve better accuracy, we consider to bundle nearby keys and feed it into the neural network.
+This model works quite well on our dataset, and achieves higher accuracy than the previous method as we manually help direct the model's attention and eliminate the aforementioned frequency inbalance issue.
 
 \subsubsection{Key Bundling}
 
-   Lastly, we bundle neighbor keys together to construct a new dataset. 
-   Since bundling too many keys tends to incur more noise, we determined the bundling number $B = 3$, including left-1 and right-1. (See Figure \ref{fig:4})
-   However, this is a hyperparameter and will be tuned during the experiment.
-   And as the image size becoming larger, we added two CONV layers and generated a new architecture, which is shown in Figure \ref{fig:j}.
+\begin{figure}[h!]
+   \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.26\linewidth]{fig/15.png}
+      \caption{Single Key Split} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.2\textwidth}
+      \centering
+      \includegraphics[width=0.4\linewidth]{fig/14.png}
+      \caption{Key Bundling} \label{fig:l}
+    \end{subfigure}
+   \caption{Comparison between two splitting modes} \label{fig:4}
+\end{figure}   
 
-   Comparing to the second method, it includes extra information about neighbor keys and hand motion surrounded without introducing the inbalance problem mentioned in Section \ref{Keypress-keyboard}.
-   With respect to the experiment result, its accuracy indeed becomes higher and even exceeds best current result.
+Lastly, we also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to include some neighbor keys.
+In other words, we will produce images of several keys when the centered key is our training target. 
+
+In our implementation, we make the number of neighbor keys to be bundled a variable hyperparameter. 
+Since bundling too many keys tends to incur more noise, after some experiments we determined the bundling number to be $B = 3$, including exact one key on both sides. (See Figure \ref{fig:4})
+
+The model we use to train bundled key images are shown in Figure \ref{fig:j}. 
+
+Compared to the second method, it includes extra information about neighbor keys and hand motions without introducing the aforementioned inbalance problem either. However, more interference is introduced as well.
+
+In our experiments, this approach outperforms the single key splitting approach in training set and validation set, but slightly weaker in the test set.
 
 \subsection{Velocity Evaluation}
 
@@ -390,7 +385,7 @@ After gating and rescaling this value, we will derive the final predicted veloci
 
 \subsection{Hyperparameter Tuning}
 
-   On all models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
+   All models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\) and a decay of \(\gamma=0.05\) for every 10 epochs. 
    We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
 
 \subsection{Evaluation Metrics}

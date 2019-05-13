@@ -101,7 +101,9 @@ def load_all_data(
     spliter=['train', 'test', 'val'],
     color=['black', 'white'],
     size=['single', 'bundle'],
-    keypress=True
+    keypress=True,
+    difference=False,
+    paddings=2
     ):
     for name in spliter:
         # X
@@ -117,7 +119,7 @@ def load_all_data(
     if keypress:
         seperate(spliter, color, size)
     else:
-        get_press_series(spliter, color)
+        get_press_series(spliter, color, difference, paddings)
 
 def pad_img(img, paddings):
     height, width, _ = img.shape # HWC
@@ -204,8 +206,8 @@ def get_masks(y_info, offset=2):
 
 tmp_imgs = []
 
-def add_series(spliter, color, start, end, key_index, paddings, black_coor=None):
-    offset = 4
+def add_series(spliter, color, start, end, key_index, paddings, black_coor=None, difference=False):
+    offset = 2
     N = y_org[spliter].shape[0]
     index = None
     if color == 'black':
@@ -220,13 +222,16 @@ def add_series(spliter, color, start, end, key_index, paddings, black_coor=None)
             X_return.append(get_black_keys(None, img, black_coor, None, paddings, index, need_pad=False))
         else:
             X_return.append(get_white_keys(None, img, None, paddings, index, need_pad=False))
+    if difference:
+        for i in range(1, len(X_return)):
+            X_return[i] = cv2.subtract(X_return[i], X_return[0])
+        X_return = X_return[1:]
     X_series[spliter][color].append(np.array(X_return))
     y_series[spliter][color].append(y_return)
 
-def get_press_series(spliter, color):
+def get_press_series(spliter, color, difference, paddings=2):
     global tmp_imgs
     
-    paddings = 4
     white_width = 17 + 2 * paddings
     black_width = 16 + 2 * paddings
     height = 106
@@ -275,18 +280,19 @@ def get_press_series(spliter, color):
             last = _y[0]
             _n = len(_y)
             for i in range(_n):
-                bar.description = f'{i}/{_n}'
-                if _y[i] != _y[i - 1] + 1:
+                if i % 32 == 0:
+                    bar.description = f'{i}/{_n}'
+                if i != 0 and _y[i] != _y[i - 1] + 1:
                     if col == 'black':
-                        add_series(name, col, last, _y[i - 1], k, paddings, black_coor)
+                        add_series(name, col, last, _y[i - 1], k, paddings, black_coor, difference)
                     else:
-                        add_series(name, col, last, _y[i - 1], k, paddings)
+                        add_series(name, col, last, _y[i - 1], k, paddings, difference)
                     last = _y[i]
-                if i == _n - 1:
+                if i == _n - 1 and last != -1:
                     if col == 'black':
-                        add_series(name, col, last, _y[i], k, paddings, black_coor)
+                        add_series(name, col, last, _y[i], k, paddings, black_coor, difference)
                     else:
-                        add_series(name, col, last, _y[i], k, paddings)
+                        add_series(name, col, last, _y[i], k, paddings, difference)
             bar.value += 1
 
         bar.close()

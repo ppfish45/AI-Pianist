@@ -1,6 +1,8 @@
 import os
 import cv2
 import numpy as np
+from ipywidgets import IntProgress
+from IPython.display import display
 
 
 if os.getcwd().endswith("models"):
@@ -22,6 +24,10 @@ black_single_width = 16 + 2 * single_paddings
 black_bundle_width = 16 + 2 * bundle_paddings
 height = 106
 width = 884
+black_mask = [1, 4, 6, 9, 11, 13, 16, 18, 21, 23, 25, 28, 30, 33, 35, 37, 40, 42, 45, 47, 49, 52, 54, 57, 59, 61, 64,
+    66, 69, 71, 73, 76, 78, 81, 83, 85]
+white_mask = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29, 31, 32, 34, 36, 38, 39, 41, 43, 44, 46, 48,
+    50, 51, 53, 55, 56, 58, 60, 62, 63, 65, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 84, 86, 87]
 
 
 def get_black_boundaries(img, expected_width=16):
@@ -77,6 +83,23 @@ def get_black_keys(img, boundaries, paddings):
     return np.array([img[:, left[i] - paddings : right[i] + paddings + 1, :] for i in range(36)])
 
 
+def merge_two_colors(white, black, dtype=bool):
+    """
+    white: (52,)
+    black: (36,)
+    """
+    assert white.shape[0] == 52, f"Expected white shape (52,) but has {white.shape}"
+    assert black.shape[0] == 36, f"Expected white shape (36,) but has {black.shape}"
+    r = np.empty((88,), dtype=dtype)
+    white_iter = iter(white)
+    black_iter = iter(black)
+    for i in white_mask:
+        r[i] = next(white_iter)
+    for i in black_mask:
+        r[i] = next(black_iter)
+    return r
+
+
 black_coor = None
 for path in X_path_list:
     img = cv2.imread(path)
@@ -103,15 +126,19 @@ class data_batch:
 
     def __iter__(self):
         self.index = 0
+        self.bar = IntProgress(max=self.len)
+        display(self.bar)
         return self
 
 
     def __next__(self):
         if self.index >= self.len:
+            self.bar.close()
             raise StopIteration
         else:
             img_path = X_path_list[self.index]
             self.index += 1
+            self.bar.value += 1
         img = cv2.imread(img_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         white_keys = get_white_keys(img, (bundle_paddings if self.bundle else single_paddings))
