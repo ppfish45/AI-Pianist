@@ -181,7 +181,7 @@ As discussed in Section \ref{Introduction}, we divide this problem into three st
 Towards the keyboard detection problem, we've tried three methods. 
 
 \subsubsection{Hough Line Detection}
-Firstly, we adopted a traditional computer vision method `Hough Line Detection', which is shown in Figure \ref{fig:1}. 
+Firstly, we adopted the traditional CV method Hough Line Detection into this task, which is shown in Figure \ref{fig:1}. 
 % It first conduct Gaussian Blurring on the picture in order to avoid noise for edge detection. 
 % Then the result will be fed into the Canny Edge Detector \cite{Canny}.
 Firstly, we can obtain the edge information of the picture by conducting Gaussian Blurring and Canny Edge Detection on it.
@@ -263,7 +263,7 @@ The result shows that this method is quite robust and accurate in determining th
 Under most circumstances, the method can extract the keyboard correctly and entirely.
 A comparison example is shown in Figure \ref{fig:2}
 
-\subsection{Keypress Recognition}
+\subsection{Keypress Recognition} \label{keypressdetection}
 
 Now that we have obtained the extracted keyboard image from background, we are able to further conduct keypress recognition task on it. We will develop CNN models to accomplish this task.
 
@@ -353,15 +353,31 @@ In our experiments, this approach outperforms the single key splitting approach 
 
    Last part of our task is to evaluate the velocity of each keypress. 
    In MIDI file, the velocity is recorded as an integer value ranges from $0$ to $127$. 
-   So our objective is to detect motion in neighbor frames and make a prediction on the velocity value of that key press.
+   So our objective is to detect motion in ``pressed'' frames and neighbor frames and make a prediction on the velocity value of that key press.
    
-   Since the prediction is related to several consecutive frames which requires sequence learning technique, we therefore choose the LSTM structure for this task. (See Figure \ref{fig:5}) 
+   Since this prediction involves extracting features in a sequence, we use LSTM to tackle this problem. 
+   
+   \subsubsection{LSTM Architecture}
+
+   In the sense of that velocity is related to the keypress depth change, which is also an important feature to determine whether a key is pressed, we used a CNN model pretrained in keypress detection \ref{keypressdetection} as the feature extractor for each input image. Then a sequence of feature tensors will be fed into a two-layer LSTM network with hidden size of 256, generating a single logit value.
+   
+   \[Velocity = Sigmoid(logit) * 127\]
+   
+After gating and rescaling this value, we will derive the final predicted velocity ranging from \([0, 128)\).
 
    \begin{figure}[h!]
       \centering
       \includegraphics[width=\linewidth]{fig/13.png}
       \caption{LSTM Architecture for Velocity Evaluation} \label{fig:5}
    \end{figure}
+
+   \subsubsection{Loss Function}
+
+   The loss function we used is \textbf{Mean-Squared Loss} which can be described as following:
+
+   \[w^*=&\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
+
+   While training, we used \(Sigmoid(logit)\) as the final output of the network instead of \(Sigmoid(logit) * 127\).
 
 \section{Experiments}
 
