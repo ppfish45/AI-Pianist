@@ -111,7 +111,7 @@ def evaluate(pred, label):
     recall = tp / (tp + fn)
     f1 = 2 * precision * recall / (precision + recall)
     return {
-        'accuracy': np.sum(pred == label),
+        'accuracy': np.mean(pred == label),
         'precision': precision,
         'recall': recall,
         'F1 score': f1
