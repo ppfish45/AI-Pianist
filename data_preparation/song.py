@@ -37,8 +37,11 @@ def smooth(track):
     return track
 
 
-message = np.load(sys.argv[1])
-message = message.astype('uint8')
+message_1 = np.load(sys.argv[1])
+message_1 = message_1.astype('uint8')
+message_2 = np.load(sys.argv[2])
+message_2 = message_2.astype('uint8')
+message = np.concatenate((message_1, message_2), axis=0)
 song = mido.MidiFile(ticks_per_beat=ticks_per_beat)
 track = mido.MidiTrack()
 song.tracks.append(track)
