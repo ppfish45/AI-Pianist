@@ -72,7 +72,7 @@ class ModelWrapper():
             max_num=-1)
         acc_matrix = np.zeros((2, 2), dtype=int)
         data_count = 0
-        for inputs, labels in dbatch:
+        for inputs, labels, _ in dbatch:
             data_count += inputs.shape[0]
             inputs = torch.Tensor(inputs)
             labels = torch.Tensor(labels)
@@ -80,6 +80,7 @@ class ModelWrapper():
                 inputs = inputs.cuda()
                 labels = labels.cuda()
             acc_matrix += self.get_accuracy_matrix(inputs, labels, threshold=threshold)
+        print(acc_matrix)
         precision, recall, general = self.evaluate_accuracy_matrix(acc_matrix)
         f1 = 2 * precision * recall / (precision + recall)
         print("Total data count", data_count, "Batch size", dbatch.batch_size)
@@ -175,7 +176,7 @@ class ModelWrapper():
                                             NCHW=True,
                                             max_num=max_num_for_this_epoch)
                 # Iterate over data.
-                for inputs, labels in dbatch:
+                for inputs, labels, _ in dbatch:
                     inputs = torch.Tensor(inputs)
                     labels = torch.Tensor(labels)
                     if torch.cuda.is_available():
