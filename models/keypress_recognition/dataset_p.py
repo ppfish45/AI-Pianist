@@ -311,7 +311,7 @@ def seperate(spliter, color, size, concatenate=False, delta=3):
         for i, p in enumerate(X_path[name]):
             white_tmp_mask = None
             black_tmp_mask = None
-            if random.random() > 1:
+            if random.random() > 0.005:
                 white_tmp_mask, black_tmp_mask = get_masks(y_org[name][i])
             else:
                 white_tmp_mask = np.arange(52)
@@ -473,6 +473,7 @@ class data_batch:
             ind = np.append(ind, np.array(self.pressed[:t]))
         ind = np.append(ind, np.array(self.unpressed[start:end]))
         ind = ind.flatten().astype('int64')
+        np.random.shuffle(ind)
         X_return = X[self.size][self.color][self.type][ind]
         if self.concatenate:
             arr = X[self.size][self.color][self.type]
