@@ -208,14 +208,6 @@ Then we take the average value of pixels in each columns, then every white-to-bl
 After we get the left and right boundary of each black key, we can localize every black key as following:
 \[Black_i = Image[0:Height, Left_i : Right_i]\]
 
-\subsubsection{Reduce Dataset Unbalance}
-
-After checking the whole dataset, we noticed that pressed keys are much less than unpressed keys, namely, there is a huge unbalance in positive samples and negative samples. If we directly use such a dataset, then the model may tend to output negative so that a low loss and a high accuracy can be acheived because most samples are negative. Such model with high accuracy is actually useless at all.
-
-To solve this problem, we randomly took out some of the negative samples because most unpressed key images are almost the same, which are solely empty keys with no hand on it. Also, we upsampled those positive samples by simply duplicating them.
-
-After this trick, the dataset contains almost the same number of positive samples and negative samples. After experiments, we think this preprocess step prevented the model from only outputing only one result.
-
 % In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
 
 \section{Methods}
@@ -441,6 +433,7 @@ Hence, the following experiment details only concern the single key and bundled 
 All four models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $10$ epochs. 
 We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
 
+
 \subsubsection{Evaluation Metrics}
 
 To evaluate our keypress recognition performance, apart from the common accuracy, we also introduce two finer criterion: \textit{Precision} and \textit{Recall}.
@@ -460,11 +453,53 @@ Thus, we introduce another commonly used metric:
 $$F1 = 2\dfrac{Precision\cdot Recall}{Precision + Recall}$$
 To describe the recognition performance.
 
+\subsubsection{Tentative Training Result}
+
+In the very early stage, we use the raw dataset to feed the model during training and get following result:\\
+
+\begin{minipage}{0.9\linewidth}
+   \centering
+\begin{tabular}{ccc}
+   \toprule
+   Precision &Recall&Accuracy\\
+   \midrule
+   1.39 \%& 2.04 \%&98.5\%\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{Tentative Training Result} \label{tab:prevdataset}
+
+\end{minipage}\\
+
+This result somehow revealed a very serious problem: most of the samples in the dataset are unpressed key images. So the model only need to output ``unpressed'', then a low loss and a high accuracy can be achieved. However, such a model is useless at all. Therefore, we need to perform some preprocess on dataset to make the training process meaningful.
+
+\subsubsection{Reduce Dataset Unbalance}
+
+To solve this dataset unbalance problem, we randomly took out some of the negative samples because most unpressed key images are almost the same, which are solely empty keys with no hand on it. Also, we upsampled those positive samples by simply duplicating them.
+
+After applying this trick, the dataset contains almost the same number of positive samples and negative samples. We conducted some experiments with this improved dataset and concluded that this preprocess step prevented the model from only outputing only one result.
+
 \subsubsection{Results}
 
-We have reached \(95\%+\) accuracy on both black keys and white keys. 
+We have reached \(95\%+\) accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
+
 Both Single and Bundle case splitting achieves quite good results.
-The details are listed below
+The details are listed below:\\
+
+\begin{minipage}{0.9\linewidth}
+   \centering
+\begin{tabular}{ccccc}
+   \toprule
+   & Precision &Recall&Accuracy& F1 Score\\
+   \midrule
+   \textbf{Bundle-B} &98.8 \%& 99.5 \%&99.1\%& 99.1\%\\
+   \textbf{Bundle-W} &95.7 \%& 97.1 \%&96.4\%& 96.4\%\\
+   \textbf{Single-B} &98.2 \%& 99.2 \%&98.7\%& 93.7\%\\
+   \textbf{Single-W} &92.6 \%& 95.0 \%&93.7\%& 93.8\%\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{Final Result} \label{tab:prevdataset}
+
+\end{minipage}\\
 
 \subsection{Velocity Evaluation}
 
