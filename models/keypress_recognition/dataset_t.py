@@ -140,7 +140,6 @@ class data_batch:
             self.index += 1
             self.bar.value += 1
         img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         white_keys = get_white_keys(img, (bundle_paddings if self.bundle else single_paddings))
         black_keys = get_black_keys(img, black_coor, (bundle_paddings if self.bundle else single_paddings))
         if self.NCHW:
