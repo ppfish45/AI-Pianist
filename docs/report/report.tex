@@ -169,7 +169,7 @@ HUANG Zeyu\\
       \toprule
       \# of Frames&\# of Black&\# of White\\
       \midrule
-      22266&14536&\sim27843\\
+      22266&14536&27843\\
       \bottomrule
       \end{tabular}
       \captionof{table}{Stats of Our Dataset} \label{tab:ourdataset} 
@@ -179,20 +179,42 @@ HUANG Zeyu\\
 
 \subsubsection{Conversion from/to MIDI format}
 
-To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $24$ fps. 
-Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame.
+To get a trainable dataset, we firstly align the beginnings and the ends of videos and MIDI audios and sample frames out of both media files in a sampling rate of $25$ fps. 
+Then, we generates a \(N \times 88\) label for each video file recording the status of each piano key in each frame, where \(N\) stands for the number of frames in that video.
 
 The output of our method is a matrix of similar shape. 
 The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
 
-\subsubsection{Forward/backward difference of frames}
+\subsubsection{Single Key Separation}
 
-For some training tasks (e.g. Velocity Evaluation) we also need the information of the previous frame(s) and the following frame(s). 
-Therefore for those tasks, we also calculate the forward positive difference (i.e. the absolute value of the pixel-wise difference of the current frame and its previous frame) and the backward positive difference of each image, concatenating them to form a 9 channel input data. 
+After we get the standardized keyboard image \ref{keyboarddetection}, we need to further separate it into single white keys and single black keys for training.
 
-For a more clear formulation, denote the $i$-th frame of the video as $F_i$ and corresponding output is $F'_i$, then 
-$$F'_i = F_i\oplus(F_i-F_{i-1})\oplus(F_{i+1}-F_i)$$
+As for white keys, we equally divide the width of the image into \(52\) parts in the sense that all white keys have the same width.
+\[White_i = Image[0:Height, i * \frac{Width}{52}: (i + 1)*\frac{Width}{52}]\]
 
+As for black keys, since different keyboard has different black keys layout. We extract the top \(5\) rows of the standardized keyboard image and use Otsu's Thresholding Algorithm to convert it into a binary image. Since most of cases, players' hands will not overlap with the very top part of the keyboard, we can expect that the image extracted has a black-white alternating pattern:
+
+\begin{figure}[h!]
+   \centering
+   \includegraphics[width=\linewidth, height=0.04\linewidth]{fig/17.jpg}
+   \caption{Expected Extracted Image}
+\end{figure}
+
+Then we take the average value of pixels in each columns, then every white-to-black pixel has exactly the x-coordinate of a black key's left boundary, every black-to-white pixel has the x-coordinate of a black key's right boundary.
+
+\[Left_i = \{x: avg_x > 0 \text{ and } avg_{x + 1} = 0\}_i\]
+\[Right_i = \{x: avg_x = 0 \text{ and } avg_{x + 1} > 0\}_i\]
+
+After we get the left and right boundary of each black key, we can localize every black key as following:
+\[Black_i = Image[0:Height, Left_i : Right_i]\]
+
+\subsubsection{Reduce Dataset Unbalance}
+
+After checking the whole dataset, we noticed that pressed keys are much less than unpressed keys, namely, there is a huge unbalance in positive samples and negative samples. If we directly use such a dataset, then the model may tend to output negative so that a low loss and a high accuracy can be acheived because most samples are negative. Such model with high accuracy is actually useless at all.
+
+To solve this problem, we randomly took out some of the negative samples because most unpressed key images are almost the same, which are solely empty keys with no hand on it. Also, we upsampled those positive samples by simply duplicating them.
+
+After this trick, the dataset contains almost the same number of positive samples and negative samples. After experiments, we think this preprocess step prevented the model from only outputing only one result.
 
 % In our implementation, we also set it possible to acquire arbitrary degree of forward/backward positive difference in case of need.
 
@@ -201,7 +223,7 @@ $$F'_i = F_i\oplus(F_i-F_{i-1})\oplus(F_{i+1}-F_i)$$
 In this section we will talk about methods tried and their pros and cons. 
 As discussed in Section \ref{Introduction}, we divide this problem into three stages, keyboard detection, keypress recognition and velocity evaluation.
 
-\subsection{Keyboard Detection}
+\subsection{Keyboard Detection} \label{keyboarddetection}
 \label{Keyboard}
 
 Towards the keyboard detection problem, we've tried three methods. 
@@ -444,6 +466,44 @@ We have reached \(95\%+\) accuracy on both black keys and white keys.
 Both Single and Bundle case splitting achieves quite good results.
 The details are listed below
 
+\subsection{Velocity Evaluation}
+
+As for the LSTM network for velocity evaluation, we adopted pretrained CNN models for single white keypress and single black keypress as feature extractors. While training, we froze CNN networks to mainly improve the performance of the LSTM model.
+
+\subsubsection{Hyperparameter Tuning}
+
+Black key model are trained \(500\) epoches with Adam optimizer with learning rate \(5e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $100$ epochs. We use a batch size of \(1\), and an \(L2\) penalty of \(0.005\) on the model parameters.
+
+White key model are trained \(450\) epoches with Adam optimizer with learning rate \(5e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $90$ epochs. We use a batch size of \(1\), and an \(L2\) penalty of \(0.005\) on the model parameters. 
+
+\subsubsection{Evaluation Metrics}
+
+To evaluate the velocity evaluation performance, we use average L1 Loss to measure the predicted velocity values and ground truths.
+
+\[Average\ L1\ Loss = \frac{1}{N}\sum_{i=1}^{N}|\widehat{y_i} - y_i|\]
+
+\subsubsection{Results}
+
+In the model for white key velocity evaluation, we reached an average L1 Loss of \(12.4729\) on test set with the best model. In the model for black key, an average L1 Loss of \(12.2698\) is reached on test set with the best model.
+
+\begin{figure}[h!]
+   \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/vel_1.png}
+      \caption{White L1 Loss History} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \newline \newline
+    \begin{subfigure}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/vel_3.png}
+      \caption{Black L1 Loss History} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+   \caption{Stats during Training Process} \label{fig:4}
+\end{figure}   
+
+However, we believe there still exists large gap between our models and ideal models for velocity evaluation. Because considering the velocity only ranges from \(0\) to \(127\), a L1 loss of around \(12\) is far from a neglectable difference.
+
+According to the loss history diagrams, we may need to cope with overfit problem emerged after the first \(100\) epoches. We have tried adding dropout on LSTM and CNN, as well as enlarging the regularization term in loss, but no satisfactory results have been obtained.
 
 Demo Video
 
