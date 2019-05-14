@@ -455,7 +455,7 @@ to describe the recognition performance.
 
 \subsubsection{Misleading Training Result}
 
-In the very early stage, we use the raw dataset to feed the model during training and get following result:
+In the very early stage, we use the raw dataset to feed the model during training and get following result:\\
 
 \begin{minipage}{0.9\linewidth}
    \centering
@@ -483,10 +483,9 @@ After applying this trick, the dataset contains almost the same number of positi
 We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
 
 Both Single and Bundle case splitting achieves quite good results.
-The validation set and test set results are listed below:
+The validation set and test set results are listed below:\\
 
-
-\begin{minipage}{0.9\linewidth}
+\begin{minipage}{\linewidth}
    \centering
 \begin{tabular}{ccccc}
    \toprule
@@ -508,7 +507,7 @@ The validation set and test set results are listed below:
    \caption{Comparison between Bundle and Single (val set)}
 \end{figure}
 
-\begin{minipage}{0.9\linewidth}
+\begin{minipage}{\linewidth}
    \centering
 \begin{tabular}{ccccc}
    \toprule
@@ -536,9 +535,7 @@ As for the LSTM network for velocity evaluation, we adopted pretrained CNN model
 
 \subsubsection{Hyperparameter Tuning}
 
-Black key model are trained \(500\) epoches with Adam optimizer with learning rate \(5e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $100$ epochs. We use a batch size of \(1\), and an \(L2\) penalty of \(0.005\) on the model parameters.
-
-White key model are trained \(450\) epoches with Adam optimizer with learning rate \(5e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $90$ epochs. We use a batch size of \(1\), and an \(L2\) penalty of \(0.005\) on the model parameters. 
+Both black and white models are trained \(60\) epoches with Adam optimizer with learning rate \(5e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $15$ epochs. We use a batch size of \(1\), and an \(L2\) penalty of \(0.1\) on the model parameters.
 
 \subsubsection{Evaluation Metrics}
 
@@ -548,16 +545,29 @@ To evaluate the velocity evaluation performance, we use average L1 Loss to measu
 
 \subsubsection{Results}
 
-In the model for white key velocity evaluation, we reached an average L1 Loss of \(12.4729\) on test set with the best model. In the model for black key, an average L1 Loss of \(12.2698\) is reached on test set with the best model.
+In the model for white key velocity evaluation, we reached an average L1 Loss of \(17.6093\) on test set with the best model. In the model for black key, an average L1 Loss of \(11.6546\) is reached on test set with the best model.\\
+
+\begin{minipage}{\linewidth}
+   \centering
+\begin{tabular}{ccc}
+   \toprule
+   Color & Val Set & Test Set\\
+   \midrule
+   \textbf{Black} & 11.6546 & 12.8342\\
+   \textbf{White} & 17.6093 & 16.9471\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{LSTM Training Result (L1 Loss)} \label{tab:prevdataset}
+
+\end{minipage}
 
 \begin{figure}[h!]
-   \begin{subfigure}{0.5\textwidth}
+   \begin{subfigure}{0.25\textwidth}
       \centering
       \includegraphics[width=\linewidth]{fig/vel_1.png}
       \caption{White L1 Loss History} \label{fig:k}
     \end{subfigure}\hspace*{\fill}
-    \newline \newline
-    \begin{subfigure}{0.5\textwidth}
+    \begin{subfigure}{0.25\textwidth}
       \centering
       \includegraphics[width=\linewidth]{fig/vel_3.png}
       \caption{Black L1 Loss History} \label{fig:k}
@@ -565,9 +575,21 @@ In the model for white key velocity evaluation, we reached an average L1 Loss of
    \caption{Stats during Training Process} \label{fig:6}
 \end{figure}   
 
-However, we believe there still exists large gap between our models and ideal models for velocity evaluation. Because considering the velocity only ranges from \(0\) to \(127\), a L1 loss of around \(12\) is far from a neglectable difference.
+However, we believe there still exists large gap between our models and ideal models for velocity evaluation. Because considering the velocity only ranges from \(0\) to \(127\), a L1 Loss \(> 10\) is far from a neglectable difference.
 
-According to the loss history diagrams, we may need to cope with overfit problem emerged after the first \(100\) epoches. We have tried adding dropout on LSTM and CNN, as well as enlarging the regularization term in loss, but no satisfactory results have been obtained.
+According to the loss history diagrams, we find that the curve did not go down after the first drop of learning rate. To tackle this problem, we tried some other methods. However, those methods have not brought us satisfactory results.
+
+\subsubsection{Failed Attempts}
+
+For the sake of getting lower loss in both train set and val set, we have tried to:
+
+\begin{itemize}
+
+\item Freeze LSTM and activate gradients on CNN after the first \(60\) epoches, then continue to train this model - This method failed as it finally brought the loss back to the leval after the first \(60\) epoches after some fluctuations.
+
+\item Use lower learning rate to continue training LSTM part - This method does decreased the loss on train set but significantly increased the loss on val set, namely, it led the model to an overfit one. 
+
+  \end{itemize}
 
 Demo Video
 
