@@ -185,7 +185,7 @@ Then, we generates a \(N \times 88\) label for each video file recording the sta
 The output of our method is a matrix of similar shape. 
 The matrix undergoes a reverse process to transform into a MIDI file with the same sampling rate.
 
-\subsubsection{Single Key Separation}
+\subsubsection{Single Key Separation} \label{single-key-sep}
 
 After we get the standardized keyboard image \ref{keyboarddetection}, we need to further separate it into single white keys and single black keys for training.
 
@@ -325,7 +325,7 @@ After defining our loss function, our next step is to process the data and set u
    We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
    The set our CNN structure is VGG-like, and the design is shown in the Figure \ref{fig:h}.
 
-   This method doesn't require any further data processing on the data derived from Task \ref{Keyboard}.
+   This method doesn't require data processing step \ref{single-key-sep}.
    However, we failed to obtain a good result with this approach. 
    One major problem may be that in our training set, some keys are frequently pressed while some are rarely pressed.
    This inbalance of frequency could provide the model with wrong attention.
@@ -350,10 +350,7 @@ After defining our loss function, our next step is to process the data and set u
 
 \subsubsection{Single Key Splitting}
 
-To help direct the model's attention, in our next attempt we split the input image into 88 segments, 
-each containing one piano key object at the center as our training target. 
-Each white key is located by dividing a image into 52 pieces along the x-axis. 
-Each black key is located using traditional cv algorithms. 
+To help direct the model's attention, in our next attempt we split the input image into 88 segments using the method elaborated in \ref{single-key-sep}, 
 Since we have resized and skewed the images into standard \(884 \times 106\) rectangles, the splitting process yields a rather promising result. 
 Finally, we add some ``tolerance'' by widening the cropped area by 2-4 pixels on its left and right sides to avoid the cropping area being to tight. 
 
@@ -378,16 +375,12 @@ This model works quite well on our dataset, and achieves higher accuracy than th
 \end{figure}   
 
 Lastly, we also introduce a second splitting stretegy called ``bundling'', where in this mode the ``tolerance'' is enlarged to include some neighbor keys.
-In other words, we will produce images of several keys when the centered key is our training target. 
+In other words, we will produce relatively wide images of several keys when the centered key is our training target. 
 
 In our implementation, we make the number of neighbor keys to be bundled a variable hyperparameter. 
 Since bundling too many keys tends to incur more noise, after some experiments we determined the bundling number to be $B = 3$, including exact one key on both sides. (See Figure \ref{fig:4})
 
-The model we use to train bundled key images are shown in Figure \ref{fig:j}. 
-
-Compared to the second method, it includes extra information about neighbor keys and hand motions without introducing the aforementioned inbalance problem either. However, more interference is introduced as well.
-
-In our experiments, this approach outperforms the single key splitting approach in training set and validation set, but slightly weaker in the test set.
+The model we use to train bundled key images are shown in Figure \ref{fig:j}. In our experiments, this approach outperforms the single key splitting approach most of the time by \(\sim 0.1\). Detailed comparisons are listed in \ref{results}.
 
 \subsection{Velocity Evaluation}
 
@@ -430,8 +423,8 @@ Hence, the following experiment details only concern the single key and bundled 
 
 \subsubsection{Hyperparameter Tuning}
 
-All four models are trained \(200\) epoches with Adam optimizer with learning rate \(1e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a learning rate decay by a multiplier of \(\gamma=0.05\) every $10$ epochs. 
-We use a batch size of \(32\), and an \(L2\) penalty of \(0.1\) on the model parameters. 
+All four models are trained \(200\) epoches with Adam optimizer with learning rate \(1e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a learning rate decay by a multiplier of \(\gamma=0.5\) every $10$ epochs. 
+We use a batch size of \(32\), and an L2 penalty of \(0.1\) on the model parameters. 
 
 
 \subsubsection{Evaluation Metrics}
@@ -478,7 +471,7 @@ To solve this dataset unbalance problem, we randomly took out some of the negati
 
 After applying this trick, the dataset contains almost the same number of positive samples and negative samples. We conducted some experiments with this improved dataset and concluded that this preprocess step prevented the model from only outputing only one result.
 
-\subsubsection{Results}
+\subsubsection{Results} \label{results}
 
 We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
 
