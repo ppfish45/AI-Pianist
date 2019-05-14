@@ -99,6 +99,8 @@ HUANG Zeyu\\
    About the \textit{Task 2}, we trained two different neural network models for black and white key-press detection. 
    Both neural network models adopt VGG-like structure\cite{VGG} with two or three layers structure as the key size is rather small for deeper convolutional neural network to learn.
    And lastly for the \textit{Task 3}, we use the LSTM structure \cite{LSTM} and feed in neighbor frames of a video to perceive the change of the keypress as well as the velocity.
+
+   We have achieved quite acceptable results. In keypress recognition part, our models gained \(\sim 98 \%\) accuracy on test set, which is higher than the currently best CNN-SVM model \cite{Akbari}. Also, in the velocity evaluation part, we achieved an average L1 Loss of \(\sim12\) (black key) and \(\sim17\) (white key) on test set.
    
 %------------------------------------------------------------------------
 \section{Related Work}
@@ -151,7 +153,7 @@ HUANG Zeyu\\
       
    \subsubsection{Our New Dataset}
 
-   However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
+   However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset \footnote{This dataset is available to the public. Due to the large file size, if you are interested, please contact us directly via email.} additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
    \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of the first part of our dataset without downsizing.
