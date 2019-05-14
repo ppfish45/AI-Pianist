@@ -24,7 +24,7 @@
 \def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
-%\ifcvprfinal\pagestyle{empty}\fi
+%\ifcvprfinal\pagestyle{empty}\f
 \setcounter{page}{1}
 \begin{document}
 
@@ -490,7 +490,7 @@ The validation set and test set results are listed below:\\
    \textbf{Single-W} &74.1 \%& 72.8 \%&98.3\%& 73.4\%\\
    \bottomrule
    \end{tabular}
-   \captionof{table}{validation Result} \label{tab:prevdataset}
+   \captionof{table}{Validation Result} \label{tab:prevdataset}
 
 \end{minipage}
 
@@ -521,6 +521,22 @@ The validation set and test set results are listed below:\\
    \caption{Comparison between Bundle and Single (test set)}
 \end{figure}
 
+Comparing to the previous work whose accuracy have already been quite good, our method achieves even better results on keypress recognition.
+\\
+
+\begin{minipage}{\linewidth}
+   \centering
+\begin{tabular}{ccccc}
+   \toprule
+   & Our Result & CNN-SVM\\
+   \midrule
+   \textbf{Black-key} &99.6\%(Val) 99.9\%(Test)& 94.6\%\\
+   \textbf{White-key} &98.3\%(Val) 98.2\%(Test)& 95.5\%\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{Accuracy Comparison} \label{tab:prevdataset}
+
+\end{minipage}
 
 \subsection{Velocity Evaluation}
 
