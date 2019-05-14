@@ -483,7 +483,30 @@ After applying this trick, the dataset contains almost the same number of positi
 We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
 
 Both Single and Bundle case splitting achieves quite good results.
-The testset results are listed below:
+The validation set and test set results are listed below:
+
+
+\begin{minipage}{0.9\linewidth}
+   \centering
+\begin{tabular}{ccccc}
+   \toprule
+   & Precision &Recall&Accuracy& F1 Score\\
+   \midrule
+   \textbf{Bundle-B} &74.4 \%& 70.9 \%&99.6\%& 72.6\%\\
+   \textbf{Bundle-W} &75.6 \%& 72.7 \%&98.3\%& 74.1\%\\
+   \textbf{Single-B} &67.7 \%& 67.0 \%&99.5\%& 67.3\%\\
+   \textbf{Single-W} &74.1 \%& 72.8 \%&98.3\%& 73.4\%\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{validation Result} \label{tab:prevdataset}
+
+\end{minipage}
+
+\begin{figure}[h!]
+   \centering
+   \includegraphics[width=\linewidth]{fig/18.png}
+   \caption{Comparison between Bundle and Single (val set)}
+\end{figure}
 
 \begin{minipage}{0.9\linewidth}
    \centering
@@ -497,9 +520,15 @@ The testset results are listed below:
    \textbf{Single-W} &76.3 \%& 77.4 \%&98.1\%& 76.8\%\\
    \bottomrule
    \end{tabular}
-   \captionof{table}{Final Result} \label{tab:prevdataset}
+   \captionof{table}{Test Result} \label{tab:prevdataset}
 
 \end{minipage}
+\begin{figure}[h!]
+   \centering
+   \includegraphics[width=\linewidth]{fig/17.png}
+   \caption{Comparison between Bundle and Single (test set)}
+\end{figure}
+
 
 \subsection{Velocity Evaluation}
 
