@@ -99,10 +99,6 @@ HUANG Zeyu\\
    About the \textit{Task 2}, we trained two different neural network models for black and white key-press detection. 
    Both neural network models adopt VGG-like structure\cite{VGG} with two or three layers structure as the key size is rather small for deeper convolutional neural network to learn.
    And lastly for the \textit{Task 3}, we use the LSTM structure \cite{LSTM} and feed in neighbor frames of a video to perceive the change of the keypress as well as the velocity.
-
-   Currently, our recognition result is quite acceptable. For the keypress recognition accuracy, i.e. the music score generation, is about \(75\%\), which is notably better than traditional computer vision methods with accuracy around \(50\%\).
-   And about the velocity detection, there is also a satisfactory result as the listeners can sense some emotion which is similar as the original song conveys.
-   Furthermore, to get higher robustness, we've record our own dataset in addition to adopted dataset from previous researches in order to increase diversity of environmental conditions. 
    
 %------------------------------------------------------------------------
 \section{Related Work}
@@ -173,8 +169,9 @@ HUANG Zeyu\\
       \bottomrule
       \end{tabular}
       \captionof{table}{Stats of Our Dataset} \label{tab:ourdataset} 
-   \end{minipage}
+   \end{minipage}\\
 
+   
 \subsection{Dataset Preprocessing}
 
 \subsubsection{Conversion from/to MIDI format}
@@ -464,13 +461,11 @@ In the very early stage, we use the raw dataset to feed the model during trainin
 \end{minipage}
 
 This result somehow revealed a very serious problem: most of the samples in the dataset are unpressed key images. So the model only need to output ``unpressed'', then a low loss and a high accuracy can be achieved. However, such a model is useless at all. Therefore, we need to perform some preprocess on dataset to make the training process meaningful.
-
 \subsubsection{Reduce Dataset Unbalance}
 
 To solve this dataset unbalance problem, we randomly took out some of the negative samples because most unpressed key images are almost the same, which are solely empty keys with no hand on it. Also, we upsampled those positive samples by simply duplicating them.
 
 After applying this trick, the dataset contains almost the same number of positive samples and negative samples. We conducted some experiments with this improved dataset and concluded that this preprocess step prevented the model from only outputing only one result.
-
 \subsubsection{Results} \label{results}
 
 We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above.
