@@ -158,7 +158,7 @@ HUANG Zeyu\\
    However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
+   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of the first part of our dataset without downsizing.
 
    \textbf{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
    In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.\\
@@ -323,7 +323,7 @@ After defining our loss function, our next step is to process the data and set u
 
    Our first attempt is to put the whole keyboard and corresponding frame note label into the neural network, trying to recognize both the pressing pattern as well as key location by one network.
    We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
-   The set our CNN structure is VGG-like, and the design is shown in the Figure \ref{fig:h}.
+   The set our CNN structure is VGG-like \cite{VGG}, and the design is shown in the Figure \ref{fig:h}.
 
    This method doesn't require data processing step \ref{single-key-sep}.
    However, we failed to obtain a good result with this approach. 
@@ -521,8 +521,9 @@ The validation set and test set results are listed below:\\
    \caption{Comparison between Bundle and Single (test set)}
 \end{figure}
 
-Comparing to the previous work whose accuracy have already been quite good, our method achieves even better results on keypress recognition.
+Comparing to the previous work done by Akbari\cite{Akbari} whose accuracy have already been quite good, our method achieves even better results on keypress recognition.
 \\
+
 
 \begin{minipage}{\linewidth}
    \centering
