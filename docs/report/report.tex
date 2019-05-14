@@ -78,7 +78,7 @@ HUANG Zeyu\\
    % The note set $T$ should contain the key-pressed information as well as velocity information.
    
    To accomplish this task, we divide it into three stages.
-
+   
    \textbf{1) Keyboard Extraction}
    As the keyboard's location differs in different videos, the first step is to develop a method extracting the whole keyboard from the background and conduct rectification on it. 
    The extracted keyboard will be fed into the second step.
@@ -88,7 +88,7 @@ HUANG Zeyu\\
    To finish this recognition, we need to focus on the piano keys' arrangement pattern as well as the illumination circumstance.
    However, since there are often reflections, shadows and other visual noises cast on the keyboard, it is rather difficult to develop an algorithm based on traditional computer vision method.
    Therefore, a robust algorithm is required.
-
+   
    \textbf{3) Velocity Evaluation}
    The velocity information is essential in audio emotion expression. 
    With a high velocity value, the song conveys stronger feelings, and vice versa. 
@@ -625,7 +625,23 @@ For the sake of getting lower loss in both train set and val set, we have tried 
 
 \item Use lower learning rate to continue training LSTM part - This method does decreased the loss on train set but significantly increased the loss on val set, namely, it led the model to an overfit one. 
 
-  \end{itemize}
+\end{itemize}
+
+\subsection{Demo Video}
+
+After all the models were finalized, we regenerated audio for a testing video that we recorded.
+
+According to the video, compared to the original audio, we can notice that our models are able to recognize almost all pressed keys. However, some false positive recognitions happens when a key is going to be pressed or a finger is closely above a key. Also, some notes with long duration are recognized into several seperate notes by our models as this key are classified as unpressed wrongly in the pressed duration.
+
+We have not added any make up on those flaws as they can reveal weaknesses of our models - hard to correctly distinguish some false positive pressings and unstable performance on long notes recognition. We believe these aspects are what we are going to work on in the future.
+
+The video is currently available online.\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy}
+
+\begin{figure}[h!]
+   \centering
+   \includegraphics[width=\linewidth]{fig/video.png}
+   \caption{Preview on Demo Video}
+\end{figure}
 
 \section{Conclusion and Future Work}
 
@@ -633,13 +649,10 @@ In this paper, we've introduced a method to tackle the audio generation problem 
 Through our method, we could get the music score from a muted piano-playing video with a high accuracy up to \(\sim 98\%\).
 And by this music score as well as the velocity information predicted, we are able to re-generate the audio with emotion.
 
-\textbf{A demo video}\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy} made by us is currently available online for reference.
-Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under different circumstances.
+A demo video made by us is currently available online for reference.
+Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under most of circumstances.
 
-
-
-In the future, we plan to refine our velocity evaluation structure to achieve a better and more stable prediction result.
-Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
+In the future, we plan to refine our velocity evaluation structure so that our generated audio can be more vivid and realistic. Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
 
 
 {\small
