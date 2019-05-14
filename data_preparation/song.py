@@ -15,6 +15,7 @@ def reproduce(message, track):
     N, D= message.shape
     prev_frame = np.zeros(shape=(D,))
     prev_time = 0
+    count = 0
     for t in range(N):
         curr_frame = message[t]
         difference = curr_frame - prev_frame
@@ -22,13 +23,19 @@ def reproduce(message, track):
             curr_time = t
             for note in range(D):
                 if difference[note] != 0:
-                    time = float(curr_time - prev_time) / float(frame_rate)
-                    msg = mido.Message('note_off' if difference[note] < 0  else 'note_on', note=note,
-                                        time=int(mido.second2tick(time, ticks_per_beat=ticks_per_beat, tempo=tempo)),
-                                        velocity=int(np.abs(curr_frame[note])))
-                    track.append(msg)
-                    prev_time = curr_time
+                    try:
+                        time = float(curr_time - prev_time) / float(frame_rate)
+                        msg = mido.Message('note_off' if difference[note] < 0  else 'note_on', note=note,
+                                            time=int(mido.second2tick(time, ticks_per_beat=ticks_per_beat, tempo=tempo)),
+                                            velocity=int(np.abs(curr_frame[note])))
+                                            # velocity = 70 if curr_frame[note]>0 else 0)
+                        track.append(msg)
+                        prev_time = curr_time
+                    except:
+                        print(curr_frame[note])
+                        count +=1
         prev_frame = curr_frame
+    print('count:' + str(count))
     return track
 
 
@@ -37,17 +44,17 @@ def smooth(track):
     return track
 
 
-message = np.load(sys.argv[1])
-message = message.astype('uint8')
-message = np.pad(message, ((0,0), (21, 19)), mode='constant', constant_values=0)
-# message_1 = np.load(sys.argv[1])
+# message = np.load(sys.argv[1])
+# message = message.astype('uint8')
+message_1 = np.load(sys.argv[1])
 # message_1 = message_1.astype('uint8')
-# message_2 = np.load(sys.argv[2])
-# message_2 = message_2.astype('uint8')
-# message = np.concatenate((message_1, message_2), axis=0)
+message_2 = np.load(sys.argv[2])
+# # message_2 = message_2.astype('uint8')
+message = np.concatenate((message_1, message_2), axis=0)
+message = np.pad(message, ((0,0), (21, 19)), mode='constant', constant_values=0)
 song = mido.MidiFile(ticks_per_beat=ticks_per_beat)
 track = mido.MidiTrack()
 song.tracks.append(track)
 track = reproduce(message=message, track=track)
 track = smooth(track=track)
-song.save('gene_test.mid')
+song.save('fucking_last_gen.mid')
