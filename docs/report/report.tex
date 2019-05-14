@@ -430,8 +430,8 @@ Hence, the following experiment details only concern the single key and bundled 
 
 \subsubsection{Hyperparameter Tuning}
 
-All four models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $10$ epochs. 
-We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+All four models are trained \(200\) epoches with Adam optimizer with learning rate \(1e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a learning rate decay by a multiplier of \(\gamma=0.05\) every $10$ epochs. 
+We use a batch size of \(32\), and an \(L2\) penalty of \(0.1\) on the model parameters. 
 
 
 \subsubsection{Evaluation Metrics}
