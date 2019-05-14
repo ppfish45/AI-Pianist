@@ -25,7 +25,7 @@ def reproduce(message, track):
                     time = float(curr_time - prev_time) / float(frame_rate)
                     msg = mido.Message('note_off' if difference[note] < 0  else 'note_on', note=note,
                                         time=int(mido.second2tick(time, ticks_per_beat=ticks_per_beat, tempo=tempo)),
-                                        velocity=int(np.abs(curr_frame[note])))
+                                        velocity=70 if curr_frame[note]>0 else 0)
                     track.append(msg)
                     prev_time = curr_time
         prev_frame = curr_frame
@@ -38,9 +38,15 @@ def smooth(track):
 
 
 message = np.load(sys.argv[1])
+message = message.astype('uint8')
+# message_1 = np.load(sys.argv[1])
+# message_1 = message_1.astype('uint8')
+# message_2 = np.load(sys.argv[2])
+# message_2 = message_2.astype('uint8')
+# message = np.concatenate((message_1, message_2), axis=0)
 song = mido.MidiFile(ticks_per_beat=ticks_per_beat)
 track = mido.MidiTrack()
 song.tracks.append(track)
 track = reproduce(message=message, track=track)
 track = smooth(track=track)
-song.save('gen_2.mid')
+song.save('gene_test.mid')

@@ -147,7 +147,7 @@ HUANG Zeyu\\
       \toprule
       \# of Frames&\# of Black&\# of White\\
       \midrule
-      70540&\sim600000&\sim400000\\
+      70540 & $\sim$600000 & $\sim$400000\\
       \bottomrule
       \end{tabular}
       \captionof{table}{Stats of Previous Dataset} \label{tab:prevdataset} 
@@ -190,7 +190,7 @@ The matrix undergoes a reverse process to transform into a MIDI file with the sa
 After we get the standardized keyboard image \ref{keyboarddetection}, we need to further separate it into single white keys and single black keys for training.
 
 As for white keys, we equally divide the width of the image into \(52\) parts in the sense that all white keys have the same width.
-\[White_i = Image[0:Height, i * \frac{Width}{52}: (i + 1)*\frac{Width}{52}]\]
+\[White_i = Image[0:Height, i \times \frac{Width}{52}: (i + 1)\times\frac{Width}{52}]\]
 
 As for black keys, since different keyboard has different black keys layout. We extract the top \(5\) rows of the standardized keyboard image and use Otsu's Thresholding Algorithm to convert it into a binary image. Since most of cases, players' hands will not overlap with the very top part of the keyboard, we can expect that the image extracted has a black-white alternating pattern:
 
@@ -430,8 +430,8 @@ Hence, the following experiment details only concern the single key and bundled 
 
 \subsubsection{Hyperparameter Tuning}
 
-All four models are trained \(20\) epoches with Adam optimizer with learning rate \(5e-4\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a multiplier decay of \(\gamma=0.05\) for every $10$ epochs. 
-We use a batch size of \(32\), and an \(L2\) penalty of \(0.05\) on the model parameters. 
+All four models are trained \(200\) epoches with Adam optimizer with learning rate \(1e-3\), \(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 1e-8\), and a learning rate decay by a multiplier of \(\gamma=0.05\) every $10$ epochs. 
+We use a batch size of \(32\), and an \(L2\) penalty of \(0.1\) on the model parameters. 
 
 
 \subsubsection{Evaluation Metrics}
@@ -449,7 +449,7 @@ where
 \end{align*}
 
 We expect both metrics to be high. However, an increase in one often indicates a decrease in the other.
-Thus, we introduce another commonly used metric:
+Thus, we introduce another commonly used metric named \textit{F1-Score}:
 $$F1 = 2\dfrac{Precision\cdot Recall}{Precision + Recall}$$
 To describe the recognition performance.
 
@@ -533,7 +533,7 @@ In the model for white key velocity evaluation, we reached an average L1 Loss of
       \includegraphics[width=\linewidth]{fig/vel_3.png}
       \caption{Black L1 Loss History} \label{fig:k}
     \end{subfigure}\hspace*{\fill}
-   \caption{Stats during Training Process} \label{fig:4}
+   \caption{Stats during Training Process} \label{fig:6}
 \end{figure}   
 
 However, we believe there still exists large gap between our models and ideal models for velocity evaluation. Because considering the velocity only ranges from \(0\) to \(127\), a L1 loss of around \(12\) is far from a neglectable difference.

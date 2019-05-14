@@ -509,4 +509,4 @@ class data_batch:
         if not self.need_velocity:
             y_return = (y_return > 0).astype(np.int)
         self.bar.value += self.batch_size
-        return (X_return, y_return)
+        return (X_return, y_return, ind)
