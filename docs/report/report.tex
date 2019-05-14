@@ -473,7 +473,33 @@ After applying this trick, the dataset contains almost the same number of positi
 
 \subsubsection{Results} \label{results}
 
-We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
+We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above.
+
+\begin{figure}[h!]
+   \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_black_single.png}
+      \caption{Black Single Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_black_bundle.png}
+      \caption{Black Bundle Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \newline \newline
+    
+   \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_white_single.png}
+      \caption{White Single Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_white_bundle.png}
+      \caption{White Bundle Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+   \caption{Stats during Training Process} \label{fig:6}
+\end{figure}   
 
 Both Single and Bundle case splitting achieves quite good results.
 The validation set and test set results are listed below:\\
@@ -603,9 +629,10 @@ For the sake of getting lower loss in both train set and val set, we have tried 
 \section{Conclusion and Future Work}
 
 In this paper, we've introduced a method to tackle the audio generation problem and achieves quite good performance.
-Through our method, we could get the music score from a muted piano-playing video with a high accuracy.
+Through our method, we could get the music score from a muted piano-playing video with a high accuracy up to \(\sim 98\%\).
 And by this music score as well as the velocity information predicted, we are able to re-generate the audio with emotion.
-A demo video\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy} made by us is currently available online for reference.
+
+\textbf{A demo video}\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy} made by us is currently available online for reference.
 Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under different circumstances.
 
 
