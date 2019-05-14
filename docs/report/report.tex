@@ -455,7 +455,7 @@ To describe the recognition performance.
 
 \subsubsection{Tentative Training Result}
 
-In the very early stage, we use the raw dataset to feed the model during training and get following result:\\
+In the very early stage, we use the raw dataset to feed the model during training and get following result:
 
 \begin{minipage}{0.9\linewidth}
    \centering
@@ -468,7 +468,7 @@ In the very early stage, we use the raw dataset to feed the model during trainin
    \end{tabular}
    \captionof{table}{Tentative Training Result} \label{tab:prevdataset}
 
-\end{minipage}\\
+\end{minipage}
 
 This result somehow revealed a very serious problem: most of the samples in the dataset are unpressed key images. So the model only need to output ``unpressed'', then a low loss and a high accuracy can be achieved. However, such a model is useless at all. Therefore, we need to perform some preprocess on dataset to make the training process meaningful.
 
@@ -480,10 +480,10 @@ After applying this trick, the dataset contains almost the same number of positi
 
 \subsubsection{Results}
 
-We have reached \(95\%+\) accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
+We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
 
 Both Single and Bundle case splitting achieves quite good results.
-The details are listed below:\\
+The testset results are listed below:
 
 \begin{minipage}{0.9\linewidth}
    \centering
@@ -491,15 +491,15 @@ The details are listed below:\\
    \toprule
    & Precision &Recall&Accuracy& F1 Score\\
    \midrule
-   \textbf{Bundle-B} &98.8 \%& 99.5 \%&99.1\%& 99.1\%\\
-   \textbf{Bundle-W} &95.7 \%& 97.1 \%&96.4\%& 96.4\%\\
-   \textbf{Single-B} &98.2 \%& 99.2 \%&98.7\%& 93.7\%\\
-   \textbf{Single-W} &92.6 \%& 95.0 \%&93.7\%& 93.8\%\\
+   \textbf{Bundle-B} &87.2 \%& 84.5 \%&99.9\%& 85.8\%\\
+   \textbf{Bundle-W} &78.4 \%& 78.8 \%&98.2\%& 78.6\%\\
+   \textbf{Single-B} &88.8 \%& 84.2 \%&99.9\%& 86.4\%\\
+   \textbf{Single-W} &76.3 \%& 77.4 \%&98.1\%& 76.8\%\\
    \bottomrule
    \end{tabular}
    \captionof{table}{Final Result} \label{tab:prevdataset}
 
-\end{minipage}\\
+\end{minipage}
 
 \subsection{Velocity Evaluation}
 
