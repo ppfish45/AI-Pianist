@@ -71,11 +71,11 @@ HUANG Zeyu\\
    However, evaluation results show that these methods are either not accurate or easy to be influenced by environmental conditions.
    So in this report, we propose a more robust solution for piano video recognition and music re-generation.
 
-   To specify the problem, we introduce the following notations:
+   % To specify the problem, we introduce the following notations:
 
-   Given a muted piano playing video $\vec{V}$ where the whole keyboard should be in the screen and each key can be seen clearly.
-   Our task is to figure out the black note set $T_i^B$ and the white note set $T_i^W$ which are played at specific frame $F_i$ extracted from $\vec{V}$ and concatenate the notes together to regenerate the piano sound for this video.
-   The note set $T$ should contain the key-pressed information as well as velocity information.
+   % Given a muted piano playing video $\vec{V}$ where the whole keyboard should be in the screen and each key can be seen clearly.
+   % Our task is to figure out the black note set $T_i^B$ and the white note set $T_i^W$ which are played at specific frame $F_i$ extracted from $\vec{V}$ and concatenate the notes together to regenerate the piano sound for this video.
+   % The note set $T$ should contain the key-pressed information as well as velocity information.
    
    To accomplish this task, we divide it into three stages.
 
@@ -591,14 +591,15 @@ For the sake of getting lower loss in both train set and val set, we have tried 
 
   \end{itemize}
 
-Demo Video
-
 \section{Conclusion and Future Work}
 
 In this paper, we've introduced a method to tackle the audio generation problem and achieves quite good performance.
 Through our method, we could get the music score from a muted piano-playing video with a high accuracy.
 And by this music score as well as the velocity information predicted, we are able to re-generate the audio with emotion.
+A demo video\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy} made by us is currently available online for reference.
 Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under different circumstances.
+
+
 
 In the future, we plan to refine our velocity evaluation structure to achieve a better and more stable prediction result.
 Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
