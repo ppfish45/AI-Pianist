@@ -46,7 +46,7 @@ HUANG Zeyu\\
 
 \maketitle
 
-% Todo: Velocity Evaluation & Results
+% Todo: Determine whether we need to introduce notation at introduction
 %
 
 %%%%%%%%% ABSTRACT
@@ -71,11 +71,11 @@ HUANG Zeyu\\
    However, evaluation results show that these methods are either not accurate or easy to be influenced by environmental conditions.
    So in this report, we propose a more robust solution for piano video recognition and music re-generation.
 
-   % To specify the problem, we introduce the following notations:
+   To specify the problem, we introduce the following notations:
 
-   % Given a muted piano playing video $\vec{V}$ where the whole keyboard should be in the screen and each key can be seen clearly.
-   % Our task is to figure out the black note set $T_i^B$ and the white note set $T_i^W$ which are played at specific frame $F_i$ extracted from $\vec{V}$ and concatenate the notes together to regenerate the piano sound for this video.
-   % The note set $T$ should contain the key-pressed information as well as velocity information.
+   Given a muted piano playing video $\vec{V}$ where the whole keyboard should be in the screen and each key can be seen clearly.
+   Our task is to figure out the black note set $T_i^B$ and the white note set $T_i^W$ which are played at specific frame $F_i$ extracted from $\vec{V}$ and concatenate the notes together to regenerate the piano sound for this video.
+   The note set $T$ should contain the key-pressed information as well as velocity information.
    
    To accomplish this task, we divide it into three stages.
 
@@ -417,7 +417,7 @@ After gating and rescaling this value, we will derive the final predicted veloci
 
    \[w^*=\argmin_w[y - w(x, \theta)]^2+\lambda||w||_2\]
 
-   While training, we used \(Sigmoid(logit)\) as the final output of the network instead of \(Sigmoid(logit) * 127\).
+   While training, we used \(\text{sigmoid}\ (logit)\) as the final output of the network instead of \(\text{sigmoid}\ (logit) \times 127\).
 
 \section{Experiments}
 
@@ -443,15 +443,15 @@ To evaluate our keypress recognition performance, apart from the common accuracy
 \end{align*}
 where
 \begin{align*}
-   TP &= \text{\# pressed keys predicted as ``pressed''}\\
-   FP &= \text{\# unpressed keys predicted as ``pressed''}\\
-   FN &= \text{\# pressed keys predicted as ``unpressed''}
+   TP &= \text{\# pressed keys predicted as ``pressed'' (True Positive)}\\
+   FP &= \text{\# unpressed keys predicted as ``pressed'' (False Positive)}\\
+   FN &= \text{\# pressed keys predicted as ``unpressed'' (False Negative)}
 \end{align*}
 
 We expect both metrics to be high. However, an increase in one often indicates a decrease in the other.
 Thus, we introduce another commonly used metric named \textit{F1-Score}:
-$$F1 = 2\dfrac{Precision\cdot Recall}{Precision + Recall}$$
-To describe the recognition performance.
+$$F1 = 2\cdot\dfrac{Precision\cdot Recall}{Precision + Recall}$$
+to describe the recognition performance.
 
 \subsubsection{Misleading Training Result}
 

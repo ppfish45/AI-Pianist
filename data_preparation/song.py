@@ -25,7 +25,7 @@ def reproduce(message, track):
                     time = float(curr_time - prev_time) / float(frame_rate)
                     msg = mido.Message('note_off' if difference[note] < 0  else 'note_on', note=note,
                                         time=int(mido.second2tick(time, ticks_per_beat=ticks_per_beat, tempo=tempo)),
-                                        velocity=70 if curr_frame[note]>0 else 0)
+                                        velocity=int(np.abs(curr_frame[note])))
                     track.append(msg)
                     prev_time = curr_time
         prev_frame = curr_frame
@@ -39,6 +39,7 @@ def smooth(track):
 
 message = np.load(sys.argv[1])
 message = message.astype('uint8')
+message = np.pad(message, ((0,0), (21, 19)), mode='constant', constant_values=0)
 # message_1 = np.load(sys.argv[1])
 # message_1 = message_1.astype('uint8')
 # message_2 = np.load(sys.argv[2])
