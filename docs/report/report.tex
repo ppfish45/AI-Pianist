@@ -24,7 +24,7 @@
 \def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
-%\ifcvprfinal\pagestyle{empty}\fi
+%\ifcvprfinal\pagestyle{empty}\f
 \setcounter{page}{1}
 \begin{document}
 
@@ -78,7 +78,7 @@ HUANG Zeyu\\
    % The note set $T$ should contain the key-pressed information as well as velocity information.
    
    To accomplish this task, we divide it into three stages.
-
+   
    \textbf{1) Keyboard Extraction}
    As the keyboard's location differs in different videos, the first step is to develop a method extracting the whole keyboard from the background and conduct rectification on it. 
    The extracted keyboard will be fed into the second step.
@@ -88,7 +88,7 @@ HUANG Zeyu\\
    To finish this recognition, we need to focus on the piano keys' arrangement pattern as well as the illumination circumstance.
    However, since there are often reflections, shadows and other visual noises cast on the keyboard, it is rather difficult to develop an algorithm based on traditional computer vision method.
    Therefore, a robust algorithm is required.
-
+   
    \textbf{3) Velocity Evaluation}
    The velocity information is essential in audio emotion expression. 
    With a high velocity value, the song conveys stronger feelings, and vice versa. 
@@ -100,9 +100,7 @@ HUANG Zeyu\\
    Both neural network models adopt VGG-like structure\cite{VGG} with two or three layers structure as the key size is rather small for deeper convolutional neural network to learn.
    And lastly for the \textit{Task 3}, we use the LSTM structure \cite{LSTM} and feed in neighbor frames of a video to perceive the change of the keypress as well as the velocity.
 
-   Currently, our recognition result is quite acceptable. For the keypress recognition accuracy, i.e. the music score generation, is about \(75\%\), which is notably better than traditional computer vision methods with accuracy around \(50\%\).
-   And about the velocity detection, there is also a satisfactory result as the listeners can sense some emotion which is similar as the original song conveys.
-   Furthermore, to get higher robustness, we've record our own dataset in addition to adopted dataset from previous researches in order to increase diversity of environmental conditions. 
+   We have achieved quite acceptable results. In keypress recognition part, our models gained \(\sim 98 \%\) accuracy on test set, which is higher than the currently best CNN-SVM model \cite{Akbari}. Also, in the velocity evaluation part, we achieved an average L1 Loss of \(\sim12\) (black key) and \(\sim17\) (white key) on test set.
    
 %------------------------------------------------------------------------
 \section{Related Work}
@@ -155,10 +153,10 @@ HUANG Zeyu\\
       
    \subsubsection{Our New Dataset}
 
-   However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset additionally to train the network.
+   However, since the first part of our dataset doesn't include velocity information, we recorded our own dataset \footnote{This dataset is available to the public. Due to the large file size, if you are interested, please contact us directly via email.} additionally to train the network.
    Despite of velocity information, our dataset also has the following several features:
 
-   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of \cite{Akbari}'s dataset without downsizing.
+   \textbf{High Resolution} Our dataset is recorded by $1080P$ camera. The keyboard resolution increased by $70\%$ than the previous dataset. We downsize the keyboard images into \(884 \times 106\) before feeding into the model, which is still even higher than the resolution of the first part of our dataset without downsizing.
 
    \textbf{Music} The first dataset only contains sequentially key-press sound track, which cannot represent real music piece. 
    In our dataset, we played and recorded several master pieces to simulate real piano-playing videos.\\
@@ -173,8 +171,9 @@ HUANG Zeyu\\
       \bottomrule
       \end{tabular}
       \captionof{table}{Stats of Our Dataset} \label{tab:ourdataset} 
-   \end{minipage}
+   \end{minipage}\\
 
+   
 \subsection{Dataset Preprocessing}
 
 \subsubsection{Conversion from/to MIDI format}
@@ -323,7 +322,7 @@ After defining our loss function, our next step is to process the data and set u
 
    Our first attempt is to put the whole keyboard and corresponding frame note label into the neural network, trying to recognize both the pressing pattern as well as key location by one network.
    We utilized a deep convolutional neural network solution for this task since it could preserve spatial information of the picture and focus its attention on some particular region.
-   The set our CNN structure is VGG-like, and the design is shown in the Figure \ref{fig:h}.
+   The set our CNN structure is VGG-like \cite{VGG}, and the design is shown in the Figure \ref{fig:h}.
 
    This method doesn't require data processing step \ref{single-key-sep}.
    However, we failed to obtain a good result with this approach. 
@@ -464,16 +463,40 @@ In the very early stage, we use the raw dataset to feed the model during trainin
 \end{minipage}
 
 This result somehow revealed a very serious problem: most of the samples in the dataset are unpressed key images. So the model only need to output ``unpressed'', then a low loss and a high accuracy can be achieved. However, such a model is useless at all. Therefore, we need to perform some preprocess on dataset to make the training process meaningful.
-
 \subsubsection{Reduce Dataset Unbalance}
 
 To solve this dataset unbalance problem, we randomly took out some of the negative samples because most unpressed key images are almost the same, which are solely empty keys with no hand on it. Also, we upsampled those positive samples by simply duplicating them.
 
 After applying this trick, the dataset contains almost the same number of positive samples and negative samples. We conducted some experiments with this improved dataset and concluded that this preprocess step prevented the model from only outputing only one result.
-
 \subsubsection{Results} \label{results}
 
-We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above. 
+We have reached \(90\%+\) training and validation accuracy on both black keys and white keys after applying the preprocessing mentioned above.
+
+\begin{figure}[h!]
+   \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_black_single.png}
+      \caption{Black Single Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_black_bundle.png}
+      \caption{Black Bundle Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \newline \newline
+    
+   \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_white_single.png}
+      \caption{White Single Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+    \begin{subfigure}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{fig/cnn_white_bundle.png}
+      \caption{White Bundle Loss} \label{fig:k}
+    \end{subfigure}\hspace*{\fill}
+   \caption{Stats during Training Process} \label{fig:6}
+\end{figure}   
 
 Both Single and Bundle case splitting achieves quite good results.
 The validation set and test set results are listed below:\\
@@ -490,7 +513,7 @@ The validation set and test set results are listed below:\\
    \textbf{Single-W} &74.1 \%& 72.8 \%&98.3\%& 73.4\%\\
    \bottomrule
    \end{tabular}
-   \captionof{table}{validation Result} \label{tab:prevdataset}
+   \captionof{table}{Validation Result} \label{tab:prevdataset}
 
 \end{minipage}
 
@@ -521,6 +544,23 @@ The validation set and test set results are listed below:\\
    \caption{Comparison between Bundle and Single (test set)}
 \end{figure}
 
+Comparing to the previous work done by Akbari\cite{Akbari} whose accuracy have already been quite good, our method achieves even better results on keypress recognition.
+\\
+
+
+\begin{minipage}{\linewidth}
+   \centering
+\begin{tabular}{ccccc}
+   \toprule
+   & Our Result & CNN-SVM\\
+   \midrule
+   \textbf{Black-key} &99.6\%(Val) 99.9\%(Test)& 94.6\%\\
+   \textbf{White-key} &98.3\%(Val) 98.2\%(Test)& 95.5\%\\
+   \bottomrule
+   \end{tabular}
+   \captionof{table}{Accuracy Comparison} \label{tab:prevdataset}
+
+\end{minipage}
 
 \subsection{Velocity Evaluation}
 
@@ -582,20 +622,34 @@ For the sake of getting lower loss in both train set and val set, we have tried 
 
 \item Use lower learning rate to continue training LSTM part - This method does decreased the loss on train set but significantly increased the loss on val set, namely, it led the model to an overfit one. 
 
-  \end{itemize}
+\end{itemize}
+
+\subsection{Demo Video}
+
+After all the models were finalized, we regenerated audio for a testing video that we recorded.
+
+According to the video, compared to the original audio, we can notice that our models are able to recognize almost all pressed keys. However, some false positive recognitions happens when a key is going to be pressed or a finger is closely above a key. Also, some notes with long duration are recognized into several seperate notes by our models as this key are classified as unpressed wrongly in the pressed duration.
+
+We have not added any make up on those flaws as they can reveal weaknesses of our models - hard to correctly distinguish some false positive pressings and unstable performance on long notes recognition. We believe these aspects are what we are going to work on in the future.
+
+The video is currently available online.\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy}
+
+\begin{figure}[h!]
+   \centering
+   \includegraphics[width=\linewidth]{fig/video.png}
+   \caption{Preview on Demo Video}
+\end{figure}
 
 \section{Conclusion and Future Work}
 
 In this paper, we've introduced a method to tackle the audio generation problem and achieves quite good performance.
-Through our method, we could get the music score from a muted piano-playing video with a high accuracy.
+Through our method, we could get the music score from a muted piano-playing video with a high accuracy up to \(\sim 98\%\).
 And by this music score as well as the velocity information predicted, we are able to re-generate the audio with emotion.
-A demo video\footnote{https://drive.google.com/open?id=1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy} made by us is currently available online for reference.
-Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under different circumstances.
 
+A demo video made by us is currently available online for reference.
+Comparing to previous solutions, our method achieves either better accuracy or becomes more robust under most of circumstances.
 
-
-In the future, we plan to refine our velocity evaluation structure to achieve a better and more stable prediction result.
-Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
+In the future, we plan to refine our velocity evaluation structure so that our generated audio can be more vivid and realistic. Also, we hope to implement a real-time recognition system to realize immediate pitch detection.
 
 
 {\small
