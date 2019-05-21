@@ -115,28 +115,10 @@ venv.bak/
 *.pdf
 *.synctex.gz
 
-dataset/Youtube/*.mp4
+dataset
 
-dataset/note_correspondence
-dataset/note_correspondence.zip
-
-models/keyboard_detection/dataset/
-models/keypress_recognition/dataset/
-models/key_seperation/dataset/
-models.zip
+results
 
 .idea
 *.pem
 *.tar
-
-models/keypress_recognition/dataset.zip
-data_preparation/new_dataset/
-
-X_test
-X_train
-X_val
-y_test
-y_train
-y_val
-data_preparation/new_dataset.zip
-data_preparation/video2.MP4
