@@ -1,13 +1,12 @@
 # AI-Pianist
 A computer vision project that aims to generate vivid and accurate piano sound based on muted piano playing videos.
 
-*Please, do not read the commit history if you are under 18. We don't want to extend your volcabulary in a bad way.*
-
 ## Demo Video
 
-This project was finished on May 14. Below is the demo video:
+This project was finished on May 14. [See our demo video](https://drive.google.com/file/d/1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy/view)
 
-https://drive.google.com/file/d/1Av0tiuX7JLYY3pAKVgKbwch3GOg0LCOy/view
+[项目演示视频亦可在哔哩哔哩视频网观看](https://www.bilibili.com/video/BV1WE411P7xF/)
+
 
 ## Project Report
 
